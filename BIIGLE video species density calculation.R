@@ -254,3 +254,171 @@ Crustacea_density_subset_threehundret_threehundretfifty <- tail(subset_threehund
 
 #### export subset data 
 subset_threehundret_threehundretfifty_meters %>% write.csv("anevik_1_11_densities_subset_threehundret_threehundretfifty.csv")
+
+
+### repeat steps above for filtering the next subset of 351-400m distance travelled, copy and paste consecutive distance travelled value (cell value +1 distance travelled of previous subset end value) to avoid duplicates
+dataframe %>% filter (between (dataframe$distance_travelled,354.731051976211,400.557369390427)) -> subset_threehundretfifty_fourhundret_meters
+###calculate subset distance travelled based on subtraction of maximum distance travelled and minimum distance travelled in subset
+subset_threehundretfifty_fourhundret_meters %>% mutate(ROV_area_distance_travelled_threehundretfifty_fourhundret=400.557369390427 - 354.731051976211 ) -> subset_threehundretfifty_fourhundret_meters
+
+### mutate new column with calculation of subset seafloor area covered in squaremeters along the whole subset: mean width of video in meters * subset 3D distance travelled in meters
+subset_threehundretfifty_fourhundret_meters %>%mutate(subset_ROV_area_threehundretfifty_fourhundret=mean_video_width * ROV_area_distance_travelled_threehundretfifty_fourhundret) -> subset_threehundretfifty_fourhundret_meters
+### retrieve maximum subset zero_fifty meters seafloor area as single value
+subset_max_ROV_area_threehundretfifty_fourhundret <- max(subset_threehundretfifty_fourhundret_meters$subset_ROV_area_threehundretfifty_fourhundret, na.rm = TRUE)
+
+### mutate new columns of single species count or counts including higher taxonomic species groups along whole subset of 0-50m distance travelled, using the same logic as above
+subset_threehundretfifty_fourhundret_meters$Primnoa_count_subset <- ifelse(subset_threehundretfifty_fourhundret_meters$label_name=='Primnoa stet.', 1, 0)
+subset_threehundretfifty_fourhundret_meters$Crustacea_count_subset <- ifelse(subset_threehundretfifty_fourhundret_meters$label_name=='Caridea stet.', 1, 0)+ ifelse(subset_threehundretfifty_fourhundret_meters$label_name=='Cancer pagurus stet.', 1,0)+ ifelse(subset_threehundretfifty_fourhundret_meters$label_name=='Munida stet.', 1,0)+ ifelse(subset_threehundretfifty_fourhundret_meters$label_name=='Arthropoda stet.', 1,0)+ ifelse(subset_threehundretfifty_fourhundret_meters$label_name=='Brachyura stet.', 1,0)
+
+###mutate new column of cumulated counts (alike abundances) along subset of previously individual species/or species group counts
+subset_threehundretfifty_fourhundret_meters %>%mutate(Primnoa_cumulated_count_subset_threehundretfifty_fourhundret = cumsum(Primnoa_count_subset)) -> subset_threehundretfifty_fourhundret_meters
+subset_threehundretfifty_fourhundret_meters %>%mutate(Crustacea_cumulated_count_subset_threehundretfifty_fourhundret = cumsum(Crustacea_count_subset)) -> subset_threehundretfifty_fourhundret_meters
+
+###calculate species/or species groups density of subset as species/species group density= subset species/species group cumulated count value/subset cumulated ROV area value
+subset_threehundretfifty_fourhundret_meters %>% mutate(Primnoa_density_subset = Primnoa_cumulated_count_subset_threehundretfifty_fourhundret/subset_ROV_area_threehundretfifty_fourhundret) -> subset_threehundretfifty_fourhundret_meters
+subset_threehundretfifty_fourhundret_meters %>% mutate(Crustacea_density_subset = Crustacea_cumulated_count_subset_threehundretfifty_fourhundret/subset_ROV_area_threehundretfifty_fourhundret) -> subset_threehundretfifty_fourhundret_meters
+
+
+### only select subset total calculated density based on total species count cumulated and subset max. distance travelled, so picking the last value of the density estimates column 
+Primnoa_density_subset_threehundretfifty_fourhundret <- tail(subset_threehundretfifty_fourhundret_meters$Primnoa_density_subset, n=1)
+Crustacea_density_subset_threehundretfifty_fourhundret <- tail(subset_threehundretfifty_fourhundret_meters$Crustacea_density_subset, n=1)
+
+#### export subset data 
+subset_threehundretfifty_fourhundret_meters %>% write.csv("anevik_1_11_densities_subset_threehundretfifty_fourhundret.csv")
+
+
+### repeat steps above for filtering the next subset of 401-450m distance travelled, copy and paste consecutive distance travelled value (cell value +1 distance travelled of previous subset end value) to avoid duplicates
+dataframe %>% filter (between (dataframe$distance_travelled,402.467202548073,449.235097358253)) -> subset_fourhundret_fourhundretfifty_meters
+###calculate subset distance travelled based on subtraction of maximum distance travelled and minimum distance travelled in subset
+subset_fourhundret_fourhundretfifty_meters %>% mutate(ROV_area_distance_travelled_fourhundret_fourhundretfifty=449.235097358253 - 402.467202548073 ) -> subset_fourhundret_fourhundretfifty_meters
+
+### mutate new column with calculation of subset seafloor area covered in squaremeters along the whole subset: mean width of video in meters * subset 3D distance travelled in meters
+subset_fourhundret_fourhundretfifty_meters %>%mutate(subset_ROV_area_fourhundret_fourhundretfifty=mean_video_width * ROV_area_distance_travelled_fourhundret_fourhundretfifty) -> subset_fourhundret_fourhundretfifty_meters
+### retrieve maximum subset zero_fifty meters seafloor area as single value
+subset_max_ROV_area_fourhundret_fourhundretfifty <- max(subset_fourhundret_fourhundretfifty_meters$subset_ROV_area_fourhundret_fourhundretfifty, na.rm = TRUE)
+
+### mutate new columns of single species count or counts including higher taxonomic species groups along whole subset of 0-50m distance travelled, using the same logic as above
+subset_fourhundret_fourhundretfifty_meters$Primnoa_count_subset <- ifelse(subset_fourhundret_fourhundretfifty_meters$label_name=='Primnoa stet.', 1, 0)
+subset_fourhundret_fourhundretfifty_meters$Crustacea_count_subset <- ifelse(subset_fourhundret_fourhundretfifty_meters$label_name=='Caridea stet.', 1, 0)+ ifelse(subset_fourhundret_fourhundretfifty_meters$label_name=='Cancer pagurus stet.', 1,0)+ ifelse(subset_fourhundret_fourhundretfifty_meters$label_name=='Munida stet.', 1,0)+ ifelse(subset_fourhundret_fourhundretfifty_meters$label_name=='Arthropoda stet.', 1,0)+ ifelse(subset_fourhundret_fourhundretfifty_meters$label_name=='Brachyura stet.', 1,0)
+
+###mutate new column of cumulated counts (alike abundances) along subset of previously individual species/or species group counts
+subset_fourhundret_fourhundretfifty_meters %>%mutate(Primnoa_cumulated_count_subset_fourhundret_fourhundretfifty = cumsum(Primnoa_count_subset)) -> subset_fourhundret_fourhundretfifty_meters
+subset_fourhundret_fourhundretfifty_meters %>%mutate(Crustacea_cumulated_count_subset_fourhundret_fourhundretfifty = cumsum(Crustacea_count_subset)) -> subset_fourhundret_fourhundretfifty_meters
+
+###calculate species/or species groups density of subset as species/species group density= subset species/species group cumulated count value/subset cumulated ROV area value
+subset_fourhundret_fourhundretfifty_meters %>% mutate(Primnoa_density_subset = Primnoa_cumulated_count_subset_fourhundret_fourhundretfifty/subset_ROV_area_fourhundret_fourhundretfifty) -> subset_fourhundret_fourhundretfifty_meters
+subset_fourhundret_fourhundretfifty_meters %>% mutate(Crustacea_density_subset = Crustacea_cumulated_count_subset_fourhundret_fourhundretfifty/subset_ROV_area_fourhundret_fourhundretfifty) -> subset_fourhundret_fourhundretfifty_meters
+
+
+### only select subset total calculated density based on total species count cumulated and subset max. distance travelled, so picking the last value of the density estimates column 
+Primnoa_density_subset_fourhundret_fourhundretfifty <- tail(subset_fourhundret_fourhundretfifty_meters$Primnoa_density_subset, n=1)
+Crustacea_density_subset_fourhundret_fourhundretfifty <- tail(subset_fourhundret_fourhundretfifty_meters$Crustacea_density_subset, n=1)
+
+#### export subset data 
+subset_fourhundret_fourhundretfifty_meters %>% write.csv("anevik_1_11_densities_subset_fourhundret_fourhundretfifty.csv")
+
+
+
+### repeat steps above for filtering the next subset of 451-500m distance travelled, copy and paste consecutive distance travelled value (cell value +1 distance travelled of previous subset end value) to avoid duplicates
+dataframe %>% filter (between (dataframe$distance_travelled,454.378074821025,500.445616383416)) -> subset_fourhundretfifty_fivehundret_meters
+###calculate subset distance travelled based on subtraction of maximum distance travelled and minimum distance travelled in subset
+subset_fourhundretfifty_fivehundret_meters %>% mutate(ROV_area_distance_travelled_fourhundretfifty_fivehundret=500.445616383416 - 454.378074821025 ) -> subset_fourhundretfifty_fivehundret_meters
+
+### mutate new column with calculation of subset seafloor area covered in squaremeters along the whole subset: mean width of video in meters * subset 3D distance travelled in meters
+subset_fourhundretfifty_fivehundret_meters %>%mutate(subset_ROV_area_fourhundretfifty_fivehundret=mean_video_width * ROV_area_distance_travelled_fourhundretfifty_fivehundret) -> subset_fourhundretfifty_fivehundret_meters
+### retrieve maximum subset zero_fifty meters seafloor area as single value
+subset_max_ROV_area_fourhundretfifty_fivehundret <- max(subset_fourhundretfifty_fivehundret_meters$subset_ROV_area_fourhundretfifty_fivehundret, na.rm = TRUE)
+
+### mutate new columns of single species count or counts including higher taxonomic species groups along whole subset of 0-50m distance travelled, using the same logic as above
+subset_fourhundretfifty_fivehundret_meters$Primnoa_count_subset <- ifelse(subset_fourhundretfifty_fivehundret_meters$label_name=='Primnoa stet.', 1, 0)
+subset_fourhundretfifty_fivehundret_meters$Crustacea_count_subset <- ifelse(subset_fourhundretfifty_fivehundret_meters$label_name=='Caridea stet.', 1, 0)+ ifelse(subset_fourhundretfifty_fivehundret_meters$label_name=='Cancer pagurus stet.', 1,0)+ ifelse(subset_fourhundretfifty_fivehundret_meters$label_name=='Munida stet.', 1,0)+ ifelse(subset_fourhundretfifty_fivehundret_meters$label_name=='Arthropoda stet.', 1,0)+ ifelse(subset_fourhundretfifty_fivehundret_meters$label_name=='Brachyura stet.', 1,0)
+
+###mutate new column of cumulated counts (alike abundances) along subset of previously individual species/or species group counts
+subset_fourhundretfifty_fivehundret_meters %>%mutate(Primnoa_cumulated_count_subset_fourhundretfifty_fivehundret = cumsum(Primnoa_count_subset)) -> subset_fourhundretfifty_fivehundret_meters
+subset_fourhundretfifty_fivehundret_meters %>%mutate(Crustacea_cumulated_count_subset_fourhundretfifty_fivehundret = cumsum(Crustacea_count_subset)) -> subset_fourhundretfifty_fivehundret_meters
+
+###calculate species/or species groups density of subset as species/species group density= subset species/species group cumulated count value/subset cumulated ROV area value
+subset_fourhundretfifty_fivehundret_meters %>% mutate(Primnoa_density_subset = Primnoa_cumulated_count_subset_fourhundretfifty_fivehundret/subset_ROV_area_fourhundretfifty_fivehundret) -> subset_fourhundretfifty_fivehundret_meters
+subset_fourhundretfifty_fivehundret_meters %>% mutate(Crustacea_density_subset = Crustacea_cumulated_count_subset_fourhundretfifty_fivehundret/subset_ROV_area_fourhundretfifty_fivehundret) -> subset_fourhundretfifty_fivehundret_meters
+
+
+### only select subset total calculated density based on total species count cumulated and subset max. distance travelled, so picking the last value of the density estimates column 
+Primnoa_density_subset_fourhundretfifty_fivehundret <- tail(subset_fourhundretfifty_fivehundret_meters$Primnoa_density_subset, n=1)
+Crustacea_density_subset_fourhundretfifty_fivehundret <- tail(subset_fourhundretfifty_fivehundret_meters$Crustacea_density_subset, n=1)
+
+#### export subset data 
+subset_fourhundretfifty_fivehundret_meters %>% write.csv("anevik_1_11_densities_subset_fourhundretfifty_fivehundret.csv")
+
+
+### repeat steps above for filtering the next subset of 501-550m distance travelled, copy and paste consecutive distance travelled value (cell value +1 distance travelled of previous subset end value) to avoid duplicates
+dataframe %>% filter (between (dataframe$distance_travelled,501.163306339103,549.647091460748)) -> subset_fivehundret_fivehundretfifty_meters
+###calculate subset distance travelled based on subtraction of maximum distance travelled and minimum distance travelled in subset
+subset_fivehundret_fivehundretfifty_meters %>% mutate(ROV_area_distance_travelled_fivehundret_fivehundretfifty=549.647091460748 - 501.163306339103 ) -> subset_fivehundret_fivehundretfifty_meters
+
+### mutate new column with calculation of subset seafloor area covered in squaremeters along the whole subset: mean width of video in meters * subset 3D distance travelled in meters
+subset_fivehundret_fivehundretfifty_meters %>%mutate(subset_ROV_area_fivehundret_fivehundretfifty=mean_video_width * ROV_area_distance_travelled_fivehundret_fivehundretfifty) -> subset_fivehundret_fivehundretfifty_meters
+### retrieve maximum subset zero_fifty meters seafloor area as single value
+subset_max_ROV_area_fivehundret_fivehundretfifty <- max(subset_fivehundret_fivehundretfifty_meters$subset_ROV_area_fivehundret_fivehundretfifty, na.rm = TRUE)
+
+### mutate new columns of single species count or counts including higher taxonomic species groups along whole subset of 0-50m distance travelled, using the same logic as above
+subset_fivehundret_fivehundretfifty_meters$Primnoa_count_subset <- ifelse(subset_fivehundret_fivehundretfifty_meters$label_name=='Primnoa stet.', 1, 0)
+subset_fivehundret_fivehundretfifty_meters$Crustacea_count_subset <- ifelse(subset_fivehundret_fivehundretfifty_meters$label_name=='Caridea stet.', 1, 0)+ ifelse(subset_fivehundret_fivehundretfifty_meters$label_name=='Cancer pagurus stet.', 1,0)+ ifelse(subset_fivehundret_fivehundretfifty_meters$label_name=='Munida stet.', 1,0)+ ifelse(subset_fivehundret_fivehundretfifty_meters$label_name=='Arthropoda stet.', 1,0)+ ifelse(subset_fivehundret_fivehundretfifty_meters$label_name=='Brachyura stet.', 1,0)
+
+###mutate new column of cumulated counts (alike abundances) along subset of previously individual species/or species group counts
+subset_fivehundret_fivehundretfifty_meters %>%mutate(Primnoa_cumulated_count_subset_fivehundret_fivehundretfifty = cumsum(Primnoa_count_subset)) -> subset_fivehundret_fivehundretfifty_meters
+subset_fivehundret_fivehundretfifty_meters %>%mutate(Crustacea_cumulated_count_subset_fivehundret_fivehundretfifty = cumsum(Crustacea_count_subset)) -> subset_fivehundret_fivehundretfifty_meters
+
+###calculate species/or species groups density of subset as species/species group density= subset species/species group cumulated count value/subset cumulated ROV area value
+subset_fivehundret_fivehundretfifty_meters %>% mutate(Primnoa_density_subset = Primnoa_cumulated_count_subset_fivehundret_fivehundretfifty/subset_ROV_area_fivehundret_fivehundretfifty) -> subset_fivehundret_fivehundretfifty_meters
+subset_fivehundret_fivehundretfifty_meters %>% mutate(Crustacea_density_subset = Crustacea_cumulated_count_subset_fivehundret_fivehundretfifty/subset_ROV_area_fivehundret_fivehundretfifty) -> subset_fivehundret_fivehundretfifty_meters
+
+
+### only select subset total calculated density based on total species count cumulated and subset max. distance travelled, so picking the last value of the density estimates column 
+Primnoa_density_subset_fivehundret_fivehundretfifty <- tail(subset_fivehundret_fivehundretfifty_meters$Primnoa_density_subset, n=1)
+Crustacea_density_subset_fivehundret_fivehundretfifty <- tail(subset_fivehundret_fivehundretfifty_meters$Crustacea_density_subset, n=1)
+
+#### export subset data 
+subset_fivehundret_fivehundretfifty_meters %>% write.csv("anevik_1_11_densities_subset_fivehundret_fivehundretfifty.csv")
+
+
+### repeat steps above for filtering the next subset of 551- end of transect at 596m distance travelled, copy and paste consecutive distance travelled value (cell value +1 distance travelled of previous subset end value) to avoid duplicates
+dataframe %>% filter (between (dataframe$distance_travelled,551.292181204782,596.37812276213)) -> subset_fivehundretfifty_sixhundret_meters
+###calculate subset distance travelled based on subtraction of maximum distance travelled and minimum distance travelled in subset
+subset_fivehundretfifty_sixhundret_meters %>% mutate(ROV_area_distance_travelled_fivehundretfifty_sixhundret=596.37812276213 - 551.292181204782 ) -> subset_fivehundretfifty_sixhundret_meters
+
+### mutate new column with calculation of subset seafloor area covered in squaremeters along the whole subset: mean width of video in meters * subset 3D distance travelled in meters
+subset_fivehundretfifty_sixhundret_meters %>%mutate(subset_ROV_area_fivehundretfifty_sixhundret=mean_video_width * ROV_area_distance_travelled_fivehundretfifty_sixhundret) -> subset_fivehundretfifty_sixhundret_meters
+### retrieve maximum subset zero_fifty meters seafloor area as single value
+subset_max_ROV_area_fivehundretfifty_sixhundret <- max(subset_fivehundretfifty_sixhundret_meters$subset_ROV_area_fivehundretfifty_sixhundret, na.rm = TRUE)
+
+### mutate new columns of single species count or counts including higher taxonomic species groups along whole subset of 0-50m distance travelled, using the same logic as above
+subset_fivehundretfifty_sixhundret_meters$Primnoa_count_subset <- ifelse(subset_fivehundretfifty_sixhundret_meters$label_name=='Primnoa stet.', 1, 0)
+subset_fivehundretfifty_sixhundret_meters$Crustacea_count_subset <- ifelse(subset_fivehundretfifty_sixhundret_meters$label_name=='Caridea stet.', 1, 0)+ ifelse(subset_fivehundretfifty_sixhundret_meters$label_name=='Cancer pagurus stet.', 1,0)+ ifelse(subset_fivehundretfifty_sixhundret_meters$label_name=='Munida stet.', 1,0)+ ifelse(subset_fivehundretfifty_sixhundret_meters$label_name=='Arthropoda stet.', 1,0)+ ifelse(subset_fivehundretfifty_sixhundret_meters$label_name=='Brachyura stet.', 1,0)
+
+###mutate new column of cumulated counts (alike abundances) along subset of previously individual species/or species group counts
+subset_fivehundretfifty_sixhundret_meters %>%mutate(Primnoa_cumulated_count_subset_fivehundretfifty_sixhundret = cumsum(Primnoa_count_subset)) -> subset_fivehundretfifty_sixhundret_meters
+subset_fivehundretfifty_sixhundret_meters %>%mutate(Crustacea_cumulated_count_subset_fivehundretfifty_sixhundret = cumsum(Crustacea_count_subset)) -> subset_fivehundretfifty_sixhundret_meters
+
+###calculate species/or species groups density of subset as species/species group density= subset species/species group cumulated count value/subset cumulated ROV area value
+subset_fivehundretfifty_sixhundret_meters %>% mutate(Primnoa_density_subset = Primnoa_cumulated_count_subset_fivehundretfifty_sixhundret/subset_ROV_area_fivehundretfifty_sixhundret) -> subset_fivehundretfifty_sixhundret_meters
+subset_fivehundretfifty_sixhundret_meters %>% mutate(Crustacea_density_subset = Crustacea_cumulated_count_subset_fivehundretfifty_sixhundret/subset_ROV_area_fivehundretfifty_sixhundret) -> subset_fivehundretfifty_sixhundret_meters
+
+
+### only select subset total calculated density based on total species count cumulated and subset max. distance travelled, so picking the last value of the density estimates column 
+Primnoa_density_subset_fivehundretfifty_sixhundret <- tail(subset_fivehundretfifty_sixhundret_meters$Primnoa_density_subset, n=1)
+Crustacea_density_subset_fivehundretfifty_sixhundret <- tail(subset_fivehundretfifty_sixhundret_meters$Crustacea_density_subset, n=1)
+
+#### export subset data 
+subset_fivehundretfifty_sixhundret_meters %>% write.csv("anevik_1_11_densities_subset_fivehundretfifty_sixhundret.csv")
+
+
+
+
+
+
+
+
+
+
+
+
