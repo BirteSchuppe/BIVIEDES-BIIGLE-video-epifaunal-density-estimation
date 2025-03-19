@@ -40,8 +40,8 @@ ROV_area_total <- max(dataframe$total_ROV_area, na.rm = TRUE)
 ### to do so, copy and paste the dataframe cell of distance travelled containing the maximul value of the sub section, here 50.4891174321858m
 
 dataframe %>% filter (between (dataframe$distance_travelled,0.000000,50.4891174321858)) -> subset_zero_fifty_meters
-###calculate subset distance travelled in meters based on subtraction of maximum distance travelled and minimum distance travelled in subset OR apply a rounded distance travelled of 50 across whole dataset????
-subset_zero_fifty_meters %>% mutate(ROV_area_distance_travelled_zero_fifty=50.4891174321858 - 0.000000 ) -> subset_zero_fifty_meters
+###mutate subset distance travelled splitted in 50m distance travelled
+subset_zero_fifty_meters %>% mutate(ROV_area_distance_travelled_zero_fifty=50) -> subset_zero_fifty_meters
 
 ### mutate new column with calculation of constant subset seafloor area covered in squaremeters : mean width of video in meters * subset distance travelled in meters calculated in previous step
 subset_zero_fifty_meters %>%mutate(subset_ROV_area_zero_fifty=mean_video_width * ROV_area_distance_travelled_zero_fifty) -> subset_zero_fifty_meters
@@ -71,8 +71,8 @@ subset_zero_fifty_meters %>% write.csv("anevik_1_11_densities_subset_zero_fifty.
 
 ### repeat steps above for filtering the next subset of 51-100m distance travelled, copy and paste consecutive distance travelled value to avoid duplicates
 dataframe %>% filter (between (dataframe$distance_travelled,51.2314313023432,100.052977552811)) -> subset_fifty_hundret_meters
-###calculate subset distance travelled based on subtraction of maximum distance travelled and minimum distance travelled in subset
-subset_fifty_hundret_meters %>% mutate(ROV_area_distance_travelled_fifty_hundret=100.052977552811 - 51.2314313023432 ) -> subset_fifty_hundret_meters
+###mutate subset distance travelled splitted in 50m distance travelled
+subset_fifty_hundret_meters %>% mutate(ROV_area_distance_travelled_fifty_hundret=50 ) -> subset_fifty_hundret_meters
 
 ### mutate new column with calculation of subset seafloor area covered in squaremeters along the whole subset: mean width of video in meters * subset 3D distance travelled in meters
 subset_fifty_hundret_meters %>%mutate(subset_ROV_area_fifty_hundret=mean_video_width * ROV_area_distance_travelled_fifty_hundret) -> subset_fifty_hundret_meters
@@ -102,8 +102,8 @@ subset_fifty_hundret_meters %>% write.csv("anevik_1_11_densities_subset_fifty_hu
 
 ### repeat steps above for filtering the next subset of 101-150m distance travelled, copy and paste consecutive distance travelled value (cell value +1 distance travelled of previous subset end value) to avoid duplicates
 dataframe %>% filter (between (dataframe$distance_travelled,101.265521690495,150.656469081094)) -> subset_hundret_hundretfifty_meters
-###calculate subset distance travelled based on subtraction of maximum distance travelled and minimum distance travelled in subset
-subset_hundret_hundretfifty_meters %>% mutate(ROV_area_distance_travelled_hundret_hundretfifty=150.656469081094 - 101.265521690495 ) -> subset_hundret_hundretfifty_meters
+###mutate subset distance travelled splitted in 50m distance travelled
+subset_hundret_hundretfifty_meters %>% mutate(ROV_area_distance_travelled_hundret_hundretfifty=50 ) -> subset_hundret_hundretfifty_meters
 
 ### mutate new column with calculation of subset seafloor area covered in squaremeters along the whole subset: mean width of video in meters * subset 3D distance travelled in meters
 subset_hundret_hundretfifty_meters %>%mutate(subset_ROV_area_hundret_hundretfifty=mean_video_width * ROV_area_distance_travelled_hundret_hundretfifty) -> subset_hundret_hundretfifty_meters
@@ -132,8 +132,8 @@ subset_hundret_hundretfifty_meters %>% write.csv("anevik_1_11_densities_subset_h
 
 ### repeat steps above for filtering the next subset of 151-200m distance travelled, copy and paste consecutive distance travelled value (cell value +1 distance travelled of previous subset end value) to avoid duplicates
 dataframe %>% filter (between (dataframe$distance_travelled,151.043270002979,200.920185442804)) -> subset_hundretfifty_twohundret_meters
-###calculate subset distance travelled based on subtraction of maximum distance travelled and minimum distance travelled in subset
-subset_hundretfifty_twohundret_meters %>% mutate(ROV_area_distance_travelled_hundretfifty_twohundret=200.920185442804 - 151.043270002979 ) -> subset_hundretfifty_twohundret_meters
+###mutate subset distance travelled splitted in 50m distance travelled
+subset_hundretfifty_twohundret_meters %>% mutate(ROV_area_distance_travelled_hundretfifty_twohundret=50 ) -> subset_hundretfifty_twohundret_meters
 
 ### mutate new column with calculation of subset seafloor area covered in squaremeters along the whole subset: mean width of video in meters * subset 3D distance travelled in meters
 subset_hundretfifty_twohundret_meters %>%mutate(subset_ROV_area_hundretfifty_twohundret=mean_video_width * ROV_area_distance_travelled_hundretfifty_twohundret) -> subset_hundretfifty_twohundret_meters
@@ -164,8 +164,8 @@ subset_hundretfifty_twohundret_meters %>% write.csv("anevik_1_11_densities_subse
 
 ### repeat steps above for filtering the next subset of 201-250m distance travelled, copy and paste consecutive distance travelled value (cell value +1 distance travelled of previous subset end value) to avoid duplicates
 dataframe %>% filter (between (dataframe$distance_travelled,201.196880718376,250.898632419209)) -> subset_twohundret_twohundretfifty_meters
-###calculate subset distance travelled based on subtraction of maximum distance travelled and minimum distance travelled in subset
-subset_twohundret_twohundretfifty_meters %>% mutate(ROV_area_distance_travelled_twohundret_twohundretfifty=250.898632419209 - 201.196880718376 ) -> subset_twohundret_twohundretfifty_meters
+###mutate subset distance travelled splitted in 50m distance travelled
+subset_twohundret_twohundretfifty_meters %>% mutate(ROV_area_distance_travelled_twohundret_twohundretfifty=50 ) -> subset_twohundret_twohundretfifty_meters
 
 ### mutate new column with calculation of subset seafloor area covered in squaremeters along the whole subset: mean width of video in meters * subset 3D distance travelled in meters
 subset_twohundret_twohundretfifty_meters %>%mutate(subset_ROV_area_twohundret_twohundretfifty=mean_video_width * ROV_area_distance_travelled_twohundret_twohundretfifty) -> subset_twohundret_twohundretfifty_meters
@@ -196,8 +196,8 @@ subset_twohundret_twohundretfifty_meters %>% write.csv("anevik_1_11_densities_su
 
 ### repeat steps above for filtering the next subset of 251-300m distance travelled, copy and paste consecutive distance travelled value (cell value +1 distance travelled of previous subset end value) to avoid duplicates
 dataframe %>% filter (between (dataframe$distance_travelled,251.247662312574,299.697097722611)) -> subset_twohundretfifty_threehundret_meters
-###calculate subset distance travelled based on subtraction of maximum distance travelled and minimum distance travelled in subset
-subset_twohundretfifty_threehundret_meters %>% mutate(ROV_area_distance_travelled_twohundretfifty_threehundret=299.697097722611 - 251.247662312574 ) -> subset_twohundretfifty_threehundret_meters
+###mutate subset distance travelled splitted in 50m distance travelled
+subset_twohundretfifty_threehundret_meters %>% mutate(ROV_area_distance_travelled_twohundretfifty_threehundret=50 ) -> subset_twohundretfifty_threehundret_meters
 
 ### mutate new column with calculation of subset seafloor area covered in squaremeters along the whole subset: mean width of video in meters * subset 3D distance travelled in meters
 subset_twohundretfifty_threehundret_meters %>%mutate(subset_ROV_area_twohundretfifty_threehundret=mean_video_width * ROV_area_distance_travelled_twohundretfifty_threehundret) -> subset_twohundretfifty_threehundret_meters
@@ -227,8 +227,8 @@ subset_twohundretfifty_threehundret_meters %>% write.csv("anevik_1_11_densities_
 
 ### repeat steps above for filtering the next subset of 301-350m distance travelled, copy and paste consecutive distance travelled value (cell value +1 distance travelled of previous subset end value) to avoid duplicates
 dataframe %>% filter (between (dataframe$distance_travelled,301.954519565726,350.947295845965)) -> subset_threehundret_threehundretfifty_meters
-###calculate subset distance travelled based on subtraction of maximum distance travelled and minimum distance travelled in subset
-subset_threehundret_threehundretfifty_meters %>% mutate(ROV_area_distance_travelled_threehundret_threehundretfifty=350.947295845965 - 301.954519565726 ) -> subset_threehundret_threehundretfifty_meters
+###mutate subset distance travelled splitted in 50m distance travelled
+subset_threehundret_threehundretfifty_meters %>% mutate(ROV_area_distance_travelled_threehundret_threehundretfifty=50 ) -> subset_threehundret_threehundretfifty_meters
 
 ### mutate new column with calculation of subset seafloor area covered in squaremeters along the whole subset: mean width of video in meters * subset 3D distance travelled in meters
 subset_threehundret_threehundretfifty_meters %>%mutate(subset_ROV_area_threehundret_threehundretfifty=mean_video_width * ROV_area_distance_travelled_threehundret_threehundretfifty) -> subset_threehundret_threehundretfifty_meters
@@ -258,8 +258,8 @@ subset_threehundret_threehundretfifty_meters %>% write.csv("anevik_1_11_densitie
 
 ### repeat steps above for filtering the next subset of 351-400m distance travelled, copy and paste consecutive distance travelled value (cell value +1 distance travelled of previous subset end value) to avoid duplicates
 dataframe %>% filter (between (dataframe$distance_travelled,354.731051976211,400.557369390427)) -> subset_threehundretfifty_fourhundret_meters
-###calculate subset distance travelled based on subtraction of maximum distance travelled and minimum distance travelled in subset
-subset_threehundretfifty_fourhundret_meters %>% mutate(ROV_area_distance_travelled_threehundretfifty_fourhundret=400.557369390427 - 354.731051976211 ) -> subset_threehundretfifty_fourhundret_meters
+###mutate subset distance travelled splitted in 50m distance travelled
+subset_threehundretfifty_fourhundret_meters %>% mutate(ROV_area_distance_travelled_threehundretfifty_fourhundret=50 ) -> subset_threehundretfifty_fourhundret_meters
 
 ### mutate new column with calculation of subset seafloor area covered in squaremeters along the whole subset: mean width of video in meters * subset 3D distance travelled in meters
 subset_threehundretfifty_fourhundret_meters %>%mutate(subset_ROV_area_threehundretfifty_fourhundret=mean_video_width * ROV_area_distance_travelled_threehundretfifty_fourhundret) -> subset_threehundretfifty_fourhundret_meters
@@ -289,8 +289,8 @@ subset_threehundretfifty_fourhundret_meters %>% write.csv("anevik_1_11_densities
 
 ### repeat steps above for filtering the next subset of 401-450m distance travelled, copy and paste consecutive distance travelled value (cell value +1 distance travelled of previous subset end value) to avoid duplicates
 dataframe %>% filter (between (dataframe$distance_travelled,402.467202548073,449.235097358253)) -> subset_fourhundret_fourhundretfifty_meters
-###calculate subset distance travelled based on subtraction of maximum distance travelled and minimum distance travelled in subset
-subset_fourhundret_fourhundretfifty_meters %>% mutate(ROV_area_distance_travelled_fourhundret_fourhundretfifty=449.235097358253 - 402.467202548073 ) -> subset_fourhundret_fourhundretfifty_meters
+###mutate subset distance travelled splitted in 50m distance travelled
+subset_fourhundret_fourhundretfifty_meters %>% mutate(ROV_area_distance_travelled_fourhundret_fourhundretfifty=50 ) -> subset_fourhundret_fourhundretfifty_meters
 
 ### mutate new column with calculation of subset seafloor area covered in squaremeters along the whole subset: mean width of video in meters * subset 3D distance travelled in meters
 subset_fourhundret_fourhundretfifty_meters %>%mutate(subset_ROV_area_fourhundret_fourhundretfifty=mean_video_width * ROV_area_distance_travelled_fourhundret_fourhundretfifty) -> subset_fourhundret_fourhundretfifty_meters
@@ -321,8 +321,8 @@ subset_fourhundret_fourhundretfifty_meters %>% write.csv("anevik_1_11_densities_
 
 ### repeat steps above for filtering the next subset of 451-500m distance travelled, copy and paste consecutive distance travelled value (cell value +1 distance travelled of previous subset end value) to avoid duplicates
 dataframe %>% filter (between (dataframe$distance_travelled,454.378074821025,500.445616383416)) -> subset_fourhundretfifty_fivehundret_meters
-###calculate subset distance travelled based on subtraction of maximum distance travelled and minimum distance travelled in subset
-subset_fourhundretfifty_fivehundret_meters %>% mutate(ROV_area_distance_travelled_fourhundretfifty_fivehundret=500.445616383416 - 454.378074821025 ) -> subset_fourhundretfifty_fivehundret_meters
+###mutate subset distance travelled splitted in 50m distance travelled
+subset_fourhundretfifty_fivehundret_meters %>% mutate(ROV_area_distance_travelled_fourhundretfifty_fivehundret=50 ) -> subset_fourhundretfifty_fivehundret_meters
 
 ### mutate new column with calculation of subset seafloor area covered in squaremeters along the whole subset: mean width of video in meters * subset 3D distance travelled in meters
 subset_fourhundretfifty_fivehundret_meters %>%mutate(subset_ROV_area_fourhundretfifty_fivehundret=mean_video_width * ROV_area_distance_travelled_fourhundretfifty_fivehundret) -> subset_fourhundretfifty_fivehundret_meters
@@ -352,8 +352,8 @@ subset_fourhundretfifty_fivehundret_meters %>% write.csv("anevik_1_11_densities_
 
 ### repeat steps above for filtering the next subset of 501-550m distance travelled, copy and paste consecutive distance travelled value (cell value +1 distance travelled of previous subset end value) to avoid duplicates
 dataframe %>% filter (between (dataframe$distance_travelled,501.163306339103,549.647091460748)) -> subset_fivehundret_fivehundretfifty_meters
-###calculate subset distance travelled based on subtraction of maximum distance travelled and minimum distance travelled in subset
-subset_fivehundret_fivehundretfifty_meters %>% mutate(ROV_area_distance_travelled_fivehundret_fivehundretfifty=549.647091460748 - 501.163306339103 ) -> subset_fivehundret_fivehundretfifty_meters
+###mutate subset distance travelled splitted in 50m distance travelled
+subset_fivehundret_fivehundretfifty_meters %>% mutate(ROV_area_distance_travelled_fivehundret_fivehundretfifty=50 ) -> subset_fivehundret_fivehundretfifty_meters
 
 ### mutate new column with calculation of subset seafloor area covered in squaremeters along the whole subset: mean width of video in meters * subset 3D distance travelled in meters
 subset_fivehundret_fivehundretfifty_meters %>%mutate(subset_ROV_area_fivehundret_fivehundretfifty=mean_video_width * ROV_area_distance_travelled_fivehundret_fivehundretfifty) -> subset_fivehundret_fivehundretfifty_meters
@@ -380,10 +380,10 @@ Crustacea_density_subset_fivehundret_fivehundretfifty <- tail(subset_fivehundret
 #### export subset data 
 subset_fivehundret_fivehundretfifty_meters %>% write.csv("anevik_1_11_densities_subset_fivehundret_fivehundretfifty.csv")
 
-
+### last section will have smaller area, so take out from statistic !!!!!
 ### repeat steps above for filtering the next subset of 551- end of transect at 596m distance travelled, copy and paste consecutive distance travelled value (cell value +1 distance travelled of previous subset end value) to avoid duplicates
 dataframe %>% filter (between (dataframe$distance_travelled,551.292181204782,596.37812276213)) -> subset_fivehundretfifty_sixhundret_meters
-###calculate subset distance travelled based on subtraction of maximum distance travelled and minimum distance travelled in subset
+###mutate subset distance travelled splitted into real distance travelled of last section, will probably not always be exactly 50m  
 subset_fivehundretfifty_sixhundret_meters %>% mutate(ROV_area_distance_travelled_fivehundretfifty_sixhundret=596.37812276213 - 551.292181204782 ) -> subset_fivehundretfifty_sixhundret_meters
 
 ### mutate new column with calculation of subset seafloor area covered in squaremeters along the whole subset: mean width of video in meters * subset 3D distance travelled in meters
