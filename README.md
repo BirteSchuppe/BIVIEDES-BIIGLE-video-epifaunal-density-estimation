@@ -12,9 +12,9 @@
 
 *NEEDS: *
 1) dummy data. so that the code can run directly when cloning the repo
-2) the data that is used in the paper? 
+2) the data that is used in the paper? Birte: maybe change some coordinates of data from paper?
 3) arrange scripts order 
-4) tidy up scripts - maybe put into QMDs - maybe condensate into several scripts 
+4) tidy up scripts - maybe put into QMDs - maybe condensate into several scripts Birte has started to tidy up 
 
 **tasks identified at 07/03/2025 meeting**
 - check numnbers rounding and precision 
