@@ -3,15 +3,13 @@ library(readr)
 library(stringr)
 library(ggplot2)
 
-
-#set working direction and load csv of matched BIIGLE annotation with navigation data
-setwd("D:/PHD/ROV/ROV raw video density estimates/navigation_smoothing")
-read_delim("smoothed_distancetravelled_annotationfixed_anevik_1_11.csv") -> dataset
-
-view(dataset)
+# load output from script 3) BIIGLE video 3D distance travelled.R
+paste0("./Output/distancetravelled_biigleannotation.csv") %>%
+  read_csv() ->  dataset
 
 ### attach a new column with video transect width, here the mean image width is used
-dataset %>% mutate(mean_video_width = 4.54) -> dataset
+# uses output of script 4) BIIGLE video laser calibration, seabed width.R
+dataset %>% mutate(mean_video_width = average_image_width ) -> dataset
 
 ### mutate new columns of single species count or counts including higher taxonomic species groups along whole dataset, do so each time if column "label_name" (has to be the same name as in the BIIGLE label tree)finds a corresponding entry, here the example for single species count is the gorgonian coral Primnoa, here labelled as "Primnoa stet."
 ### each time the code finds the corresponding BIIGLE label in a datarow (as string ? copied from the dataset), a count of 1 is given for this datarow, in case it is not a corresponding entry, the datarow sets a 0
@@ -33,8 +31,6 @@ dataset %>%mutate(total_Crustacea_cumulated_count= cumsum(crustacea_count)) -> d
 dataset %>%mutate(total_ROV_area=mean_video_width * dataset$distance_travelled) -> dataset
 ### retrieve maximum total seafloor area as single value
 ROV_area_total <- max(dataset$total_ROV_area, na.rm = TRUE)
-
-
 
 ### to find out how species density changes along the video transect, we split the dataset into subsets based on the column desired distance_travelled, here sections of 50m distance_travelled subsets are filtered consecutively along the whole dataset
 ### to do so, copy and paste the dataset cell of distance travelled containing the maximul value of the sub section, here 50.4891174321858m
