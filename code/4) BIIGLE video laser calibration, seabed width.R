@@ -2,39 +2,32 @@ library(magrittr)
 library(tidyverse)
 # proocessing metadata ========================================================================
 # put path to your navigation filefix error with workind dir
-setwd("D:/PHD/ROV/ROV raw video density estimates/navigation_smoothing")
-read_csv ("smoothed_nav_anevik_1_11.csv") -> navigation_data
-read_csv ("26-anevik-1-11_arranged.csv") -> annotation_data
+read_csv (paste0("nav/",smoothed_navigation_file)) -> smoothed_navigation_data
+read_csv ( paste0("./annotations/arranged_",generic_annotation_file ) ) -> annotation_data
 
 
 view(annotation_data)
 
 
 # the propeorties of the images and laser sacle? 
+
+# MAKE SURE IT IS CORRECT FOR YOUR STUDY!!!!!! 
+  
 ROV_imageproperties <- tibble( width = 1920, 
                       height = 1080, 
                       nb_pxl = 1920 * 1080 , 
                       laserscaledist_m = 0.075 # in meters (not cm)
 ) 
 
-
-# time when the video starts
-
-video_starttime <- "07/01/2021 09:31:07" # enter here as dd:mm:yyyy hh:mm:ss
-video_starttime %<>% dmy_hms() # mind the order in which month and days are writen 
-
 # extract the first line of nav as the starttime - need to import the metadata as nav
 # ONLY IF YOU HAVE THAT TABLE LOADED !!!!!!!!
-video_starttime <- navigation_data %>% slice(1) %>% select(Sperre_LOG_DATETIME) %>%
+video_starttime <- smoothed_navigation_data %>% slice(1) %>% 
+  select(Sperre_LOG_DATETIME) %>% # USE interpolated depth here !!! !
   mutate(date_time = anytime::anytime(paste(Sperre_LOG_DATETIME)))  %>% pull(date_time)
 
-
-# load biigle annotations 
+# load Biigle annotations 
 # The laser point annotations must be unique to each laser points - 
 # tracked annotations (more thant one time stamps ) will not work 
-
-
-
 
 # first and last frame of each annotation 
 annotation_data %<>%
@@ -55,11 +48,6 @@ annotation_data %<>%
           endsec = endframe %>% seconds() %>% floor)
 
 # attach metadata at the time something disappear (last second - where nearest to the camera) ----------
-
-
-
-
-
 
 annotation_data   %>% filter(  label_name == "Laser points") -> laser
 
@@ -89,17 +77,14 @@ laser %<>%
   left_join(laser,by = join_by(frames)) %>% 
   mutate(pixelsize_m = ROV_imageproperties$laserscaledist_m/laser_scale %>%  as.numeric )  
 
-
-
-# calculate image surface, to be able to extract image surface width. Not recommended to calculate image surface from ROV due to oblique angles and optical distorion. May work for perpendicular filmed seabed
+# Calculate image width and height from the pixelsize and the image properties
 laser %>% 
   # select(laser_scale, frames, pixelsize_m) %>% 
   mutate(height = (pixelsize_m) * ROV_imageproperties$height,
          width = (pixelsize_m) * ROV_imageproperties$width ) %>% 
-  mutate(surface_laser_m2 = width*height) %>% 
-  distinct(frames, .keep_all = T) %>% 
+   distinct(frames, .keep_all = T) %>% 
   # keep the important variables for exporting 
-  select(frames, pixelsize_m, width, height, surface_laser_m2 ) -> surface_data 
+  select(frames, pixelsize_m, width, height  ) -> surface_data 
 
 
 # frame in seconds 
@@ -121,13 +106,13 @@ surface_data %<>%
   select(-v)
 
 
-# average surface 
+# average image width in meters 
 average_image_width <- surface_data$width %>% mean()
-average_image_width
+print(paste0("average iamge width in meters: ",average_image_width))
+ 
+# export the table
 
-
-
-surface_data %>% write_csv("laserCal_annotations_anevik_1_11.csv")
+surface_data %>% write.csv(paste0("./Output/laserCal_biigleannotation.csv" ) )
 
 
 

@@ -8,6 +8,7 @@
 - results are in folder
 - run script script2[name2].r
 - results are in ...
+- Run script number 4 to calibrate the image size - USER INPUT FOR CAMERA PARAMETERS NEEDED HERE !!!! 
 
 
 *NEEDS: *
