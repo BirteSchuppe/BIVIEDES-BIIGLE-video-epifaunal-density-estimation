@@ -6,42 +6,24 @@ library(purrr)
 #### set direction of BIIGLE annotations in zipped folder
 "D:/PHD/ROV/BIIGLE files/63" -> reports_folder
 # list the csv tables - 
-list.files(reports_folder, pattern = "26-anevik-1-11.csv") -> files
 
+list.files("./annotations", pattern = ".csv$") -> generic_annotation_file
+
+generic_annotation_file %>% read.csv()
+ 
 # 2) make a metadata table --------------------------------------------------------------------------------
 
-tibble(file = files ) %>%
-  mutate(table_name = str_remove(file,pattern = ".csv")) %>% 
+tibble(file = generic_annotation_file ) %>%
+  mutate(table_name = str_remove(file,pattern = ".csv")) -> annotationTables
   # make a column of volume ID number
-  mutate(volume = str_remove(table_name,pattern = "26-anevik-1-11.csv") ) -> annotationTables
-
-
-
-
-# make a list to store all transformed tables tables
-Dframes  <- as.list(1:nrow(annotationTables))
-
-for (i in seq(Dframes)) {
-  # select the table number i
-  annotationTables %>% slice(i) -> meta.i
-  # import it
-  meta.i %>% pull(file ) %>% paste(reports_folder,.,sep = "/") %>%
-    read_csv( ) -> D.i
+    
+    read_csv( paste0("./annotations/",generic_annotation_file )  ) -> All_annotations
   
   # add the metadata 
-  bind_cols( D.i,meta.i) ->  Dframes[[i]]
-  
-}
-
-#### output table of all annotations
-Dframes %>% bind_rows() -> All_annotations
-
-
-All_annotations$created_at %>% plot()
-View(All_annotations)
+    All_annotations %>% 
+      mutate(table_name = annotationTables$table_name) -> All_annotations
 
 ### sort annotations chronically by time in video, represented by chronically order of "frames" column
-
 All_annotations %>%
   # make frame to numerical
   mutate(frame_new =    frames %>% str_sub( 2, -2)  %>% 
@@ -51,6 +33,6 @@ All_annotations %>%
 
 # sort per image frame 
 All_annotations %>%  arrange(frame_new) -> All_annotations
-View(All_annotations)
-
-write_csv(All_annotations, "26-anevik-1-11_arranged.csv")
+ 
+# export re-arranged annotations 
+write_csv(All_annotations, paste0("./annotations/arranged_",generic_annotation_file )  )
