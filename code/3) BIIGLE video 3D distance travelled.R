@@ -1,4 +1,5 @@
 library(sf)
+library(rgl)
 library(magrittr)
 library(tidyverse)
 
@@ -39,9 +40,6 @@ time_stamps %<>%
 
 # does this look legit? 
 time_stamps %>%  select( sec_in_video , time_in_video )
-
-# export csv table
-time_stamps %>% write_csv("time_smoothed_nav_anevik_1_11.csv")
 
 # merge with Biigle annotations ========================================================
 
@@ -94,7 +92,7 @@ joint_navigation_annotation_utm %>% dplyr::select(X, Y,Sperre_Depth)  -> dpoint
 
 
 # plot your points in 3d
-library(rgl)
+
 open3d()
 x <- dpoint$X %>%  scale()
 y <- dpoint$Y %>%  scale()
@@ -130,10 +128,10 @@ dpoints2  %>%
 cumulated_3D_distance_travelled %>% tail(1) %>% pull(distance_travelled) 
 
 # add the distance column
-joint_navigation_annotation <- cbind(joint_navigation_annotation, cumulated_3D_distance_travelled)
+joint_navigation_annotation <- bind_cols(joint_navigation_annotation, cumulated_3D_distance_travelled)
 view(joint_navigation_annotation)
 
 # export the table
-joint_navigation_annotation %>% write.csv(paste0("./Output/distancetravelled_biigleannotation.csv" ) )
+joint_navigation_annotation %>% write_csv(paste0("./Output/distancetravelled_biigleannotation.csv" ) )
 
 
