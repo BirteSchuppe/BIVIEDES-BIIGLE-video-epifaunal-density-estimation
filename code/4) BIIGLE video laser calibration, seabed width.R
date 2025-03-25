@@ -1,16 +1,17 @@
-
+library(magrittr)
+library(tidyverse)
 # proocessing metadata ========================================================================
 # put path to your navigation filefix error with workind dir
 setwd("D:/PHD/ROV/ROV raw video density estimates/navigation_smoothing")
-read_csv ("smoothed_nav_anevik_1_11.csv") -> nav_horsv
-read_csv ("26-anevik-1-11_arranged.csv") -> annotations_horsv
+read_csv ("smoothed_nav_anevik_1_11.csv") -> navigation_data
+read_csv ("26-anevik-1-11_arranged.csv") -> annotation_data
 
 
-view(annotations_horsv)
+view(annotation_data)
 
 
 # the propeorties of the images and laser sacle? 
-dd_imgprop <- tibble( width = 1920, 
+ROV_imageproperties <- tibble( width = 1920, 
                       height = 1080, 
                       nb_pxl = 1920 * 1080 , 
                       laserscaledist_m = 0.075 # in meters (not cm)
@@ -24,7 +25,7 @@ video_starttime %<>% dmy_hms() # mind the order in which month and days are writ
 
 # extract the first line of nav as the starttime - need to import the metadata as nav
 # ONLY IF YOU HAVE THAT TABLE LOADED !!!!!!!!
-video_starttime <- nav_horsv %>% slice(1) %>% select(Sperre_LOG_DATETIME) %>%
+video_starttime <- navigation_data %>% slice(1) %>% select(Sperre_LOG_DATETIME) %>%
   mutate(date_time = anytime::anytime(paste(Sperre_LOG_DATETIME)))  %>% pull(date_time)
 
 
@@ -36,7 +37,7 @@ video_starttime <- nav_horsv %>% slice(1) %>% select(Sperre_LOG_DATETIME) %>%
 
 
 # first and last frame of each annotation 
-annotations_horsv %<>%
+annotation_data %<>%
   # start frame
   mutate(startframe =    frames %>% str_sub( 2, -2)  %>% 
            str_replace("null",replacement = "0") %>% 
@@ -49,7 +50,7 @@ annotations_horsv %<>%
            map_vec(~tail(.x,1) %>% as.numeric) )
 
 # make a start and end second for each annotation
-annotations_horsv %<>%
+annotation_data %<>%
   mutate( startsec = startframe %>% seconds() %>% floor, 
           endsec = endframe %>% seconds() %>% floor)
 
@@ -60,18 +61,18 @@ annotations_horsv %<>%
 
 
 
-annotations_horsv   %>% filter(  label_name == "Laser points") -> dlasers
+annotation_data   %>% filter(  label_name == "Laser points") -> laser
 
 # get all the images with 2 laser dots
-dlasers %>% count(frames) %>% count(n)
+laser %>% count(frames) %>% count(n)
 
 # # frames that are 2 entries and entries that are within 1 frame
-dlasers %>% filter(startframe == endframe) %>% count(frames) %>% filter(n == 2) %>% pull(frames) -> laserIMG
-dlasers %>% filter(frames %in% laserIMG)-> dlasers
+laser %>% filter(startframe == endframe) %>% count(frames) %>% filter(n == 2) %>% pull(frames) -> laserIMG
+laser %>% filter(frames %in% laserIMG)-> laser
 
 
 # convert char point coordinate to numberical
-dlasers %<>%
+laser %<>%
   # select(frames, points) %>% 
   mutate(points = str_sub(points, 3,-3 )) %>% 
   separate(points,into = c("pointx","pointy"),sep = ",") %>% 
@@ -80,53 +81,53 @@ dlasers %<>%
 
 
 # calculate distance between points 
-dlasers %<>% 
+laser %<>% 
   select(frames,pointx, pointy) %>% 
   split(.$frames) %>%
   map(~ select(.,pointx, pointy) %>% dist() %>%  tibble(laser_scale = .) ) %>%
   bind_rows(.id = "frames") %>% 
-  left_join(dlasers,by = join_by(frames)) %>% 
-  mutate(pixelsize_m = dd_imgprop$laserscaledist_m/laser_scale %>%  as.numeric )  
+  left_join(laser,by = join_by(frames)) %>% 
+  mutate(pixelsize_m = ROV_imageproperties$laserscaledist_m/laser_scale %>%  as.numeric )  
 
 
 
-# calculate image surface 
-dlasers %>% 
+# calculate image surface, to be able to extract image surface width. Not recommended to calculate image surface from ROV due to oblique angles and optical distorion. May work for perpendicular filmed seabed
+laser %>% 
   # select(laser_scale, frames, pixelsize_m) %>% 
-  mutate(height = (pixelsize_m) * dd_imgprop$height,
-         width = (pixelsize_m) * dd_imgprop$width ) %>% 
+  mutate(height = (pixelsize_m) * ROV_imageproperties$height,
+         width = (pixelsize_m) * ROV_imageproperties$width ) %>% 
   mutate(surface_laser_m2 = width*height) %>% 
   distinct(frames, .keep_all = T) %>% 
   # keep the important variables for exporting 
-  select(frames, pixelsize_m, width, height, surface_laser_m2 ) -> d_surface 
+  select(frames, pixelsize_m, width, height, surface_laser_m2 ) -> surface_data 
 
 
 # frame in seconds 
-d_surface %<>% 
+surface_data %<>% 
   mutate(timeinvid_sec =    frames %>% str_sub( 2, -2)  %>% 
            str_replace("null",replacement = "0") %>% 
            str_split(pattern = ",") %>%
            map_vec(~head(.x,1) %>% as.numeric   ) ) %>% arrange(timeinvid_sec)
 
 # time in hms form 
-d_surface %<>% 
+surface_data %<>% 
   mutate(v= seconds_to_period(timeinvid_sec)) %>%
   # format duration to hh:mm:ss - with leading 0s
   mutate(Time_hms =strftime(as.POSIXct("00:00:00", format="%H:%M:%S") + v, format="%H:%M:%S") ) 
 
 # real time : video start time + time in video 
-d_surface %<>% 
+surface_data %<>% 
   mutate(realtime = video_starttime + timeinvid_sec) %>% 
   select(-v)
 
 
 # average surface 
-average_FOV <- d_surface$width %>% mean()
-average_FOV
+average_image_width <- surface_data$width %>% mean()
+average_image_width
 
 
 
-d_surface %>% write_csv("laserCal_annotations_anevik_1_11.csv")
+surface_data %>% write_csv("laserCal_annotations_anevik_1_11.csv")
 
 
 

@@ -3,7 +3,7 @@ library(stringr)
 library(readr)
 library(purrr)
 
-
+#### set direction of BIIGLE annotations in zipped folder
 "D:/PHD/ROV/BIIGLE files/63" -> reports_folder
 # list the csv tables - 
 list.files(reports_folder, pattern = "26-anevik-1-11.csv") -> files
@@ -33,18 +33,14 @@ for (i in seq(Dframes)) {
   
 }
 
-# This is your table of everything 
+#### output table of all annotations
 Dframes %>% bind_rows() -> All_annotations
 
 
 All_annotations$created_at %>% plot()
 View(All_annotations)
 
-# sort per image names 
-All_annotations %>%  arrange(filename)
-
-# sort per image IDs
-All_annotations %>%  arrange(image_id)
+### sort annotations chronically by time in video, represented by chronically order of "frames" column
 
 All_annotations %>%
   # make frame to numerical
@@ -58,9 +54,3 @@ All_annotations %>%  arrange(frame_new) -> All_annotations
 View(All_annotations)
 
 write_csv(All_annotations, "26-anevik-1-11_arranged.csv")
-
-# sort the rows per time they were created 
-All_annotations %>%  arrange(created_at %>% desc) 
-
-# last annotations first just to see
-All_annotations %>%  arrange(created_at %>% desc) 
