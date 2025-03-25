@@ -4,9 +4,9 @@ library(tsibble)
 library(zoo)
 library(tidyverse)
 library(magrittr)
-library(stringr)
 
-# open the table with time and xy positions, use replace section to replace individual variabels faster
+
+# open the table with time and xy positions, here maybe need to chag e/delete working direction??? (linked to my local drive)
 setwd("D:/PHD/ROV/ROV raw video density estimates/navigation_smoothing")
 read_csv("Generic_navigation.csv") -> navigation
 
