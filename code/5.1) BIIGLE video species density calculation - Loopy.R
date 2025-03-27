@@ -1,43 +1,40 @@
 library(tidyverse)
 library(readr)
 library(plotly)
-library(stringr)
-library(ggplot2)
+library(tidyverse)
 
 # load output from script 3) BIIGLE video 3D distance travelled.R
 paste0("./Output/distancetravelled_biigleannotation.csv") %>%
   read_csv() ->  dataset
+# open image calibration info to calculate the bin surface
+paste0("./Output/laserCal_biigleannotation.csv" ) %>%  read_csv() -> surface_data
 
-### attach a new column with video transect width, here the mean image width is used
-# uses output of script 4) BIIGLE video laser calibration, seabed width.R
-dataset %>% mutate(mean_video_width = average_image_width ) -> dataset
-
-###mutate new column with calculation of total seafloor area covered in squaremetres along the whole dataset: mean width of video in meters * 3D distance travelled in meters
-dataset %>%mutate(total_ROV_area=mean_video_width * dataset$distance_travelled) -> dataset
-### retrieve maximum total seafloor area as single value
-ROV_area_total <- max(dataset$total_ROV_area, na.rm = TRUE)
+!!!! cut the surface  data into bins too !!!!! 
  
+
+# attach the width of the seabed to the dataset
+dataset %>% left_join(surface_data %>% select(width, height, realtime.1s ), by = c("mtime" = "realtime.1s")) -> dataset
 
 ### to find out how species density changes along the video transect, we split the dataset into subsets based on the column desired distance_travelled, here sections of 50m distance_travelled subsets are filtered consecutively along the whole dataset
 ### to do so, copy and paste the dataset cell of distance travelled containing the maximul value of the sub section, here 50.4891174321858m
 
-
- 
 # create bins of 50m distance travelled 
 breaks <- seq(0, max(dataset$distance_travelled) + 50, by = 50)
 binned_numbers <- cut(dataset$distance_travelled, breaks = breaks, include.lowest = TRUE)
 mutate(dataset, bin = binned_numbers) -> dataset
 
-# show the aerage depth in each bin
-dataset %>%  group_by(bin) %>% 
-  summarise(n = n(), 
-     # caluculate the mean depth in each bin
-     mean_depth = mean(Sperre_Depttime_stamps1, na.rm = TRUE),
-     )  
+# plot XY depth in 3d with the bin for color
+plot_ly(dataset, x = ~X, y = ~Y, z = ~-Sperre_Depttime_stamps1,
+        color = ~bin, 
+        # set the color palette to rainbow
+        #colors = rainbow(length(breaks)),
+        colors = "Set3",
+        type = "scatter3d", mode = "markers", 
+        # smaller pch size
+        marker = list(size = 2))  %>%
+  layout(title = "XY depth in 3D with bin color")
 
-
-# loop over each bins and calculate the the numbe of occurence of each label_name
-
+# loop over each bins and calculate the the number of occurrence of each label_name
 bins_list <- list()
 
 for (i in unique(dataset$bin)){
@@ -57,6 +54,50 @@ bins_df %>%
   pivot_wider(names_from = label_name, values_from = n) %>% 
   replace(is.na(.), 0) -> bins_df
 
+
+
+
+#### export table of species abundance per bin
+bins_df %>% 
+  write_csv(paste0("./Output/50mbins_species_abundances.csv" ) )
+  
+
+# show the average width in each bin 
+dataset %>%  group_by(bin) %>% 
+  summarise(n = n(), 
+            # caluculate the mean depth in each bin
+            mean_depth = mean(Sperre_Depttime_stamps1, na.rm = TRUE),
+            # and the width
+            mean_width = mean(width, na.rm = TRUE),
+  ) %>% 
+  # surface of a bin is the average width * 50m
+  mutate(bin_surface = mean_width * 50) -> bins_metadata
+
+# add a line to the tabl showing the average values for the entire table
+bins_metadata %>% 
+  summarise(mean_depth = mean(mean_depth),
+            mean_width = mean(mean_width),
+            bin_surface = sum(bin_surface)) %>% 
+  mutate(bin = paste0( "All(",breaks %>% head(1),",",breaks %>% last() ,"]"), n = nrow(dataset) ) %>% 
+  bind_rows(bins_metadata) -> bins_metadata
+
+
+# calculate the density of each species in each bin
+# divide each abundance value in bin_df by the corresponding bin surface in bins_metadata.
+bins_df %>% 
+  select(-bin) %>% 
+  map(~ .x / bins_metadata$bin_surface) %>% 
+  bind_cols(bins_df %>% select(bin)) %>% 
+  # Add the bins names back 
+bind_cols(bins= bins_df$bin, .) -> bins_df_density
+ 
+
+#### export tables of species densities per bin
+bins_df_density %>% 
+  write_csv(paste0("./Output/50mbins_species_densities.csv" ) )
+
+
+# = = = = = = = = = = = = = = = = = = = 
 # make a quick PCA and plot where the bins are in the 2d space of the main axis
 bins_df %>% 
   select(-bin) %>% 
@@ -64,37 +105,48 @@ bins_df %>%
 
 # transform the bins into a color vector where the bins names are replaced by color codes
 # Get unique levels in the vector
-unique_levels <- unique(bins_df$bin)
+unique_levels <- unique(bins_df$bin)# to get a bind as an id
+
+unique_levels <- unique(bins_metadata$mean_depth) 
 
 # Choose a color palette with the number of unique levels
 color_palette <-  rainbow(length(unique_levels))
 # Create a named vector to map unique levels to colors
 color_mapping <- setNames(color_palette, unique_levels)
 # Map the characters to colors
-char_colors <- color_mapping[unique_levels]
+char_colors <- color_mapping[unique_levels %>%  as.character()]
 # plot it 
 plot_ly() %>%
-  add_trace(x = bins_pca$x[,1], y = bins_pca$x[,2], z = bins_pca$x[,3], color = bins_df$bin, type = "scatter3d", mode = "markers") %>%
-  layout(title = "PCA of species density in 50m bins",
+  add_trace(x = bins_pca$x[,1], y = bins_pca$x[,2], z = bins_pca$x[,3],
+            color = unique_levels, type = "scatter3d",
+            mode = "markers") %>%
+  # legend = list(title = "Depth (m)", traceorder = "reversed"),
+  layout(title = "PCA of species density in 50m bins", 
          scene = list(xaxis = list(title = "PC1"),
                       yaxis = list(title = "PC2"),
-                      zaxis = list(title = "PC3")))
+                      zaxis = list(title = "PC3")),
+         # add a title to the legend and reverse the color scale
+         annotations = list(
+           x = 1.13,
+           y = 1.05,
+           text = 'Depth (m)',
+           xref = 'paper',
+           yref = 'paper',
+           showarrow = FALSE
+         )
+  )
+         
 
-
-#### export subset data 
-bins_df %>% 
-  write_csv(paste0("./Output/50mbins_species_abundances.csv" ) )
+# in dataset, plot the occurence of each labels with the time on the x axis
+dataset %>% 
+  ggplot(aes(x = mtime,y=1:nrow(dataset), col = label_name)) +
+  geom_point() +
+  # remove the legend
+  theme_minimal() +
+  theme(legend.position = "none")
+  guides(fill="FALSE")
   
   
-
-
-
-
-
-
-
-
-
-
+ 
 
 

@@ -7,11 +7,13 @@ library(purrr)
 "D:/PHD/ROV/BIIGLE files/63" -> reports_folder
 # list the csv tables - 
 
-list.files("./annotations", pattern = ".csv$") -> generic_annotation_file
 
-generic_annotation_file %>% read.csv()
+list.files("./annotations", pattern = ".csv$") %>% 
+# exclude the "arranged" pattern 
+str_subset("arranged", negate = T) -> generic_annotation_file
+
  
-# 2) make a metadata table --------------------------------------------------------------------------------
+# 2) make a table --------------------------------------------------------------------------------
 
 tibble(file = generic_annotation_file ) %>%
   mutate(table_name = str_remove(file,pattern = ".csv")) -> annotationTables

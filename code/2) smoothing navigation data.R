@@ -17,7 +17,7 @@ read_csv(paste0("nav/",navigation_file) ) -> navigation
 # time managment
 navigation %>% 
   # make the time column - if you have a data and a time column
-  mutate(mtime = Sperre_LOG_DATETIME)-> maskxy
+  mutate(mtime = Sperre_LOG_DATETIME) -> maskxy
 # if you have a dmy_hms character string
 #mutate( mtime = dmy_hms(time)) -> maskxy
 
@@ -32,7 +32,7 @@ maskxy %>% select(mtime, Survey_LOG_RELTIME,Survey_ROV_LON,Survey_ROV_LAT, Sperr
   # they are still a basic interpolation of the closest coordinates 
   mutate(LON2 = zoo::na.approx(as.vector(Survey_ROV_LON)),
          LAT2 = zoo::na.approx(as.vector(Survey_ROV_LAT)), 
-         DEPTH2 = ... ) -> maskxy  
+         DEPTH2 = zoo::na.approx(as.vector(DEPTH)) ) -> maskxy  
 # note this might also be enough if your track look good
 
 maskxy %>%  filter( is.na(LAT2) ) # there shouldn???t be any NA left - but check does no harm
@@ -42,7 +42,7 @@ is.na(maskxy$LAT2)
 t <- 1:nrow(maskxy)
 x <- maskxy$LON2
 y <- maskxy$LAT2
-z <- maskxy$DEPTH2
+# z  # no smoothing of th ~DEPTH: interpolation should be enough 
 # Fit a cubic smoothing spline to each dimension
 # !!! this is user input. You can decide on the right smoothing paramter after checking the plot below
 dfs = 50
@@ -50,7 +50,7 @@ spars = 0.3
 
 sx <- smooth.spline(t, x, df = dfs, spar = spars, cv = TRUE)
 sy <- smooth.spline(t, y, df = dfs, spar = spars, cv = TRUE)
-sz <- smooth.spline(t, z, df = dfs, spar = spars, cv = TRUE)# Add smothing for the depth 
+ 
 
 
 # plot the recorded tracks 
