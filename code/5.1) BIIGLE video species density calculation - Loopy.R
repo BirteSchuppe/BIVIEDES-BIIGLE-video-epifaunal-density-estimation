@@ -1,5 +1,6 @@
 library(tidyverse)
 library(readr)
+library(plotly)
 library(stringr)
 library(ggplot2)
 
