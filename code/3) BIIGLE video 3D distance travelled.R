@@ -6,8 +6,7 @@ library(tidyverse)
 
 # proocessing metadata ========================================================================
 # put path to your navigation file
-smoothed_navigation_file <- "smoothed_Generic_navigation.csv"
-  
+
 paste0("nav/",smoothed_navigation_file)  %>% 
 read_csv( col_names = TRUE, trim_ws = TRUE) -> navigation_smoothed
 
