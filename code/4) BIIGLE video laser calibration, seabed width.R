@@ -1,7 +1,11 @@
+library(tsibble)
+library(zoo) # for interpolations
+library(gridExtra)
 library(magrittr)
 library(tidyverse)
 # proocessing metadata ========================================================================
 # put path to your navigation filefix error with workind dir
+smoothed_navigation_file <- "smoothed_Generic_navigation.csv"
 read_csv (paste0("nav/",smoothed_navigation_file)) -> smoothed_navigation_data
 read_csv ( paste0("./annotations/arranged_",generic_annotation_file ) ) -> annotation_data
 
@@ -92,7 +96,9 @@ surface_data %<>%
   mutate(timeinvid_sec =    frames %>% str_sub( 2, -2)  %>% 
            str_replace("null",replacement = "0") %>% 
            str_split(pattern = ",") %>%
-           map_vec(~head(.x,1) %>% as.numeric   ) ) %>% arrange(timeinvid_sec)
+           map_vec(~head(.x,1) %>% as.numeric %>%
+                     # round down to the second 
+                     floor()   ) ) %>% arrange(timeinvid_sec)
 
 # time in hms form 
 surface_data %<>% 
@@ -110,10 +116,60 @@ surface_data %<>%
 average_image_width <- surface_data$width %>% mean()
 print(paste0("average iamge width in meters: ",average_image_width))
  
-# export the table
-
-surface_data %>% write.csv(paste0("./Output/laserCal_biigleannotation.csv" ) )
 
 
+# interpolate surface data == === == === == === = = == = = =
+
+# create the missing time stamps so that you have a reading at each second 
+surface_data %>% 
+  as_tsibble(index = realtime ) %>%
+  fill_gaps() %>% # automatically creates the missing timestamps
+  as_tibble() %>% 
+  # interpolate the coordinates values for the timestamps you have created
+  # these wont be accurate but you will replace them soon
+  # they are still a basic interpolation of the closest coordinates 
+  mutate(width2 = zoo::na.approx(as.vector(width)),
+         height2 = zoo::na.approx(as.vector(height))  ) -> surface_data_1s  
 
 
+# position in video 
+# join to nearest timestamp in metadata  
+by <- join_by(  closest(realtime  <= realtime )) # !! joining by closest time stamp - MAY NOT BE EXACT !!!!!!!!!!!
+surface_data_1s  %>%  select(laser_frames = frames, width = width2 , height = height2, realtime) %>% 
+  left_join(smoothed_navigation_data %>% select(realtime = mtime, xsmoothed,ysmoothed),
+            by , # custom join function 
+            , suffix = c(".1s", ".orifreq") ) -> surface_data_1s   
+
+### export the table
+surface_data_1s %>% write.csv(paste0("./Output/laserCal_biigleannotation.csv" ) )
+
+### make plots of interp
+# plot width over time 
+surface_data %>% 
+  ggplot(aes(x = realtime, y = width)) +
+  geom_point(color = "red") +
+  labs(title = "Width of images over time",
+       x = "Time (original frequency)",
+       y = "Width (m)") +
+  theme_minimal() -> plot10s
+
+
+# plot width over time 
+surface_data_1s %>% 
+  ggplot(aes(x = realtime.1s, y = width)) +
+  geom_line() +
+  labs(title = "Interpolated width of images over time",
+       x = "Time (1s)",
+       y = "Width (m)") +
+  theme_minimal() -> plot1s
+
+
+# add the line of width from surface data to plot1s and add a legend
+plot1s + 
+  geom_point(data = surface_data, aes(x = realtime, y = width), color = "red") +
+  # add the red dots as original and black line as interpolated in the legend
+  scale_color_manual(values = c("red", "black"), labels = c("Original", "Interpolated")) +
+  theme_minimal()  -> plot1_10s
+ 
+# put the two plots into a grid with 1 column and 2 rows
+gridExtra::grid.arrange(plot10s, plot1s,plot1_10s, ncol = 1)
