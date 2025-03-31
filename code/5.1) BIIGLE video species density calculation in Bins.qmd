@@ -1,0 +1,167 @@
+---
+title: "Analyzing BIIGLE Video Data"
+author: "Your Name"
+date: "Today's Date"
+format:
+  html:
+    toc: true
+    number-sections: true
+---
+
+## Introduction
+
+This Quarto document outlines the workflow for analyzing video annotation data from BIIGLE. We will focus on calculating species density changes along a video transect, generating plots, and exporting processed data for further analysis.
+
+## Setup
+
+Before beginning, we will load necessary libraries.
+
+```{r}
+library(tidyverse)
+library(readr)
+library(plotly)
+
+getwd() -> wd
+# delete the "code" part of the pathway so that the rest of the path are not relative to the code directory
+wd <- str_remove(wd, "/code/") 
+
+
+```
+
+## Data Loading
+
+Load Dataset We will start by loading the output from a previous script that recorded the distance traveled in BIIGLE annotations.
+
+```{r}
+dataset <- paste0("../Output/distancetravelled_biigleannotation.csv") %>%
+  read_csv()
+```
+
+## Load Calibration Data
+
+Next, we load the image calibration data to assist in calculating the seabed surface width.
+
+```{r}
+surface_data <- paste0("../Output/laserCal_biigleannotation.csv") %>%
+  read_csv()
+```
+
+## Merge Datasets
+
+We attach the width of the seabed to the dataset using a left join.
+
+```{r}
+dataset <- dataset %>% 
+  left_join(surface_data %>% select(width, height, realtime.1s), by = c("mtime" = "realtime.1s"))
+```
+
+## Data Binning
+To analyze how species density changes along the video transect, we split the dataset into subsets based on the distance travelled by the ROV. Here, we will create 50m distance traveled bins.
+
+```{r}
+bin_distance <- 50
+breaks <- seq(0, max(dataset$distance_travelled) + bin_distance, by = bin_distance)
+binned_numbers <- cut(dataset$distance_travelled, breaks = breaks, include.lowest = TRUE)
+dataset <- mutate(dataset, bin = binned_numbers)
+```
+
+## Visualizing 
+3D Depth Plot We create a 3D plot to visualize the X, Y, and depth dimensions, color-coded by bins.
+
+```{r}
+
+plot_ly(dataset, x = ~X, y = ~Y, z = ~-Sperre_Depttime_stamps1,
+        color = ~bin, 
+        colors = "Set3",
+        type = "scatter3d", mode = "markers", 
+        marker = list(size = 2))  %>%
+  layout(title = "XY Depth in 3D with Bin Color")
+```
+
+## Species Occurrence by Bin 
+Calculate the number of occurrences of each species within each bin.
+
+```{r}
+bins_list <- list()
+
+for (i in unique(dataset$bin)){
+  bin.i <- dataset %>% filter(bin == i)
+  bin.i.counts <- bin.i %>% count(label_name)
+  bin.i.counts$bin <- i 
+  bins_list[[i]] <- bin.i.counts
+}
+
+bins_df <- bins_list %>% bind_rows()
+```
+
+## Pivot Table 
+Transform the table to have species names as columns and bins as rows.
+
+```{r}
+bins_df <- bins_df %>%
+  pivot_wider(names_from = label_name, values_from = n) %>% 
+  replace(is.na(.), 0)
+```
+
+
+### Exporting Data
+
+Species Abundance Export the table of species abundance per bin.
+
+```{r}
+bins_df %>% 
+  write_csv(paste0("../Output/",bin_distance,"mbins_species_abundances.csv"))
+```
+
+### Bin Metadata
+
+Calculate average width and surface area for each bin.
+
+```{r}
+bins_metadata <- dataset %>%
+  group_by(bin) %>%
+  summarise(n = n(), 
+            mean_depth = mean(Sperre_Depttime_stamps1, na.rm = TRUE),
+            mean_width = mean(width, na.rm = TRUE)) %>%
+  mutate(bin_surface = mean_width * bin_distance)
+
+```
+
+###Species Density Calculate the density of each species in each bin based on surface area.
+
+```{r}
+bins_df_density <- bins_df %>%
+  select(-bin) %>%
+  map(~ .x / bins_metadata$bin_surface) %>%
+  bind_cols(bins_df %>% select(bin)) %>%
+  bind_cols(bins= bins_df$bin, .)
+  
+bins_df_density %>% 
+  write_csv(paste0("../Output/",bin_distance,"mbins_species_densities.csv"))
+```
+
+
+## Principal Component Analysis (PCA)
+Perform PCA to visualize the different bins in the species space.
+
+```{r}
+bins_pca <- bins_df %>% 
+  select(-bin) %>% 
+  prcomp(center = TRUE, scale. = TRUE)
+
+unique_levels <- unique(bins_metadata$mean_depth) 
+color_palette <- rainbow(length(unique_levels))
+color_mapping <- setNames(color_palette, unique_levels)
+char_colors <- color_mapping[unique_levels]
+
+plot_ly() %>%
+  add_trace(x = bins_pca$x[,1], y = bins_pca$x[,2], z = bins_pca$x[,3],
+            color = bins_metadata$mean_depth, type = "scatter3d", mode = "markers") %>%
+  layout(title = "PCA of Species Density in 50m Bins",
+         scene = list(xaxis = list(title = "PC1"),
+                      yaxis = list(title = "PC2"),
+                      zaxis = list(title = "PC3")))
+```
+
+
+
