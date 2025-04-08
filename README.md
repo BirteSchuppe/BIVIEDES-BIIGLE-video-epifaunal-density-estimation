@@ -16,7 +16,9 @@
 1) DONE: dummy data. so that the code can run directly when cloning the repo: Birte has uploaded dummy data of navigation (removal of first digit of both latutude and longitude) and dummy data of annotations (prelimnary BIIGLE annotation from the same transect used in the navigation data 
 2) the data that is used in the paper? Birte: upload of prelimnary annotation, need some help to verify species ID in near future
 3) arrange scripts order 
-    - Deal with all the navigation stuff before merging with annotation (except use of laser annotation in clibration script)
+    - Deal with all the navigation stuff before merging with annotation (except use of laser annotation in calibration script)
+    - make bins on the navigation to avoid biases due to non-homogeneous sampling event
+    - merge nav and annotation in last
 4) tidy up scripts - maybe put into QMDs - maybe condensate into several scripts Birte has started to tidy up 
 
 **tasks identified at 07/03/2025 meeting**

@@ -3,42 +3,45 @@ library(readr)
 library(plotly)
 library(tidyverse)
 
-# load output from script 3) BIIGLE video 3D distance travelled.R
-paste0("./Output/distancetravelled_biigleannotation.csv") %>%
-  read_csv() ->  dataset
-# open image calibration info to calculate the bin surface
-paste0("./Output/dist_calibrated_smoothed_navigation.csv" ) %>%  read_csv() -> navigation_data
-
-# set a bin size in m 
-bin_size <- 50
-
-# create bins of 50m distance travelled 
-breaks <- seq(0, max(navigation_data$distance_travelled) + bin_size, by = bin_size)
-binned_numbers <- cut(navigation_data$distance_travelled, breaks = breaks, include.lowest = TRUE)
-navigation_data <- mutate(navigation_data, bin = binned_numbers) 
 
 
-# show the average width in each bin 
-navigation_data %>%  group_by(bin) %>% 
-  summarise(n = n(), 
-            # caluculate the mean depth in each bin
-            mean_depth = mean(depth, na.rm = TRUE),
-            # and the width
-            mean_width = mean(width, na.rm = TRUE),
-  ) %>% 
-  # surface of a bin is the average width * 50m
-  mutate(bin_surface = mean_width * bin_size) -> bins_metadata
-
-# add a line to the tabl showing the average values for the entire table
-bins_metadata %>% 
-  summarise(mean_depth = mean(mean_depth),
-            mean_width = mean(mean_width),
-            bin_surface = sum(bin_surface)) %>% 
-  mutate(bin = paste0( "All(",breaks %>% head(1),",",breaks %>% last() ,"]"), n = nrow(dataset) ) %>% 
-  bind_rows(bins_metadata) -> bins_metadata
- 
 
 #===============================================================================================================
+# load output from script 4) BIIGLE video 3D distance travelled.R
+paste0("./Output/distancetravelled_biigleannotation.csv") %>%
+  read_csv() ->  dataset
+
+# open the table of annotations
+arranged_annotations_file <-  paste0("./annotations/","arranged_generic_annotation.csv" )
+read_csv(arranged_annotations_file) -> arranged_biigle_annotations 
+
+# first and last frame of each annotation 
+arranged_biigle_annotations %<>%
+  # start frame
+  mutate(startframe =    frames %>% str_sub( 2, -2)  %>% 
+           str_replace("null",replacement = "0") %>% 
+           str_split(pattern = ",") %>%
+           map_vec(~head(.x,1) %>% as.numeric),
+         # endframe
+         endframe =    frames %>% str_sub( 2, -2)  %>% 
+           str_replace("null",replacement = "0") %>% 
+           str_split(pattern = ",") %>%
+           map_vec(~tail(.x,1) %>% as.numeric) )
+
+# make a start and end second for each annotation
+arranged_biigle_annotations %<>%
+  mutate( startsec = startframe %>% seconds() %>% floor, 
+          endsec = endframe %>% seconds() %>% floor)
+
+arranged_biigle_annotations %>% select(endsec, startsec, frames)  
+
+
+# attach metadata at the time something disappear (last second - where nearest to the camera) ----------
+
+# join to nearest timestamp in metadata  
+by <- join_by(  closest(endsec  <= sec_in_video )) # !! joining by closest time stamp - MAY NOT BE EXACT !!!!!!!!!!!
+time_stamps  %>%  
+  left_join(arranged_biigle_annotations, . ,by , suffix = c(".annotations", ".metadata"))   -> dataset
 
 # attach the width of the seabed to the dataset
 dataset %>% left_join(navigation_data %>% select(X,Y,depth = depth_interpolated,width,   realtime , bin ), by = c("realtime" = "realtime")) -> dataset
@@ -154,5 +157,36 @@ bind_cols(bins= bins_df$bin, .) -> bins_df_density
 bins_df_density %>% 
   write_csv(paste0("./Output/50mbins_species_densities.csv" ) )
 
+bins_df
+bins_df_density <- bins_df %>%
+  select(-bin) %>%
+  map(~ .x / bins_metadata$bin_surface) %>%
+  bind_cols(bins_df %>% select(bin)) %>%
+  bind_cols(bins= bins_df$bin, .)
 
  
+bins_df_density %>% 
+  # remove the all 
+  filter(bin != "All(0,950]") %>%
+  # ignore
+  select(-bins) %>% 
+  prcomp(center = TRUE, scale. = TRUE)
+
+
+bins_df_density %>% 
+  # remove the all 
+  filter(bin != "All(0,950]") %>%
+  # ignore
+  select(-bins) -> bins_forpcs
+
+# show column types in bins_forpcs
+bins_forpcs %>% 
+  map_df(~ class(.x)) %>% 
+  t() %>% 
+  as.data.frame() %>% 
+  rownames_to_column("column") %>% 
+  rename(type = value)  
+
+
+
+
