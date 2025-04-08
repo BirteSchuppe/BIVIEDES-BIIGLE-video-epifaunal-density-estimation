@@ -7,7 +7,7 @@ library(tidyverse)
 # proocessing metadata ========================================================================
 # put path to your navigation file
 
-paste0("nav/",smoothed_navigation_file)  %>% 
+paste0("nav/smoothed_",navigation_file) %>% 
 read_csv( col_names = TRUE, trim_ws = TRUE) -> navigation_smoothed
 
 # open the table of annotations
@@ -80,8 +80,6 @@ joint_navigation_annotation %>%  select(xsmoothed, ysmoothed) %>%  points(pch = 
 traj.sf <-st_as_sf(joint_navigation_annotation ,coords =c("xsmoothed","ysmoothed"),crs="+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0")
 # reproject to UTM 33
 # find out the right UTM zone and convert to it
-
-
 traj.sf %<>% st_transform( "+proj=utm +zone=33 +datum=WGS84 +units=m +no_defs")
 # get coordinates 
 traj.sf$geometry %>% st_coordinates() %>% as_tibble() %>% bind_cols(joint_navigation_annotation)-> joint_navigation_annotation_utm
@@ -128,7 +126,7 @@ cumulated_3D_distance_travelled %>% tail(1) %>% pull(distance_travelled)
 
 # add the distance column
 joint_navigation_annotation <- bind_cols(joint_navigation_annotation, cumulated_3D_distance_travelled)
-view(joint_navigation_annotation)
+ 
 
 # export the table
 joint_navigation_annotation %>% write_csv(paste0("./Output/distancetravelled_biigleannotation.csv" ) )

@@ -9,10 +9,6 @@ smoothed_navigation_file <- "smoothed_Generic_navigation.csv"
 read_csv (paste0("nav/",smoothed_navigation_file)) -> smoothed_navigation_data
 read_csv ( paste0("./annotations/arranged_",generic_annotation_file ) ) -> annotation_data
 
-
-view(annotation_data)
-
-
 # the propeorties of the images and laser sacle? 
 
 # MAKE SURE IT IS CORRECT FOR YOUR STUDY!!!!!! 
@@ -24,8 +20,7 @@ ROV_imageproperties <- tibble( width = 1920,
 ) 
 
 # extract the first line of nav as the starttime - need to import the metadata as nav
-video_starttime <- smoothed_navigation_data %>% slice(1) %>% 
-  mutate(date_time = anytime::anytime(paste(Sperre_LOG_DATETIME)))  %>% pull(date_time)
+video_starttime <- smoothed_navigation_data %>% slice(1) %>% pull(mtime)
 
 # load Biigle annotations 
 # The laser point annotations must be unique to each laser points - 
@@ -112,7 +107,7 @@ surface_data %<>%
 
 # average image width in meters 
 average_image_width <- surface_data$width %>% mean()
-print(paste0("average iamge width in meters: ",average_image_width))
+print(paste0("average image width in meters: ",average_image_width))
  
 
 
@@ -127,21 +122,24 @@ surface_data %>%
   # these wont be accurate but you will replace them soon
   # they are still a basic interpolation of the closest coordinates 
   mutate(width2 = zoo::na.approx(as.vector(width)),
-         height2 = zoo::na.approx(as.vector(height))  ) -> surface_data_1s  
+         height2 = zoo::na.approx(as.vector(height))  )  %>%
+  select(laser_frames = frames, width = width2 , height = height2, realtime) -> surface_data_1s  
 
 
 # position in video 
-# join to nearest timestamp in metadata  
-by <- join_by(  closest(realtime  <= realtime )) # !! joining by closest time stamp - MAY NOT BE EXACT !!!!!!!!!!!
-surface_data_1s  %>%  select(laser_frames = frames, width = width2 , height = height2, realtime) %>% 
-  left_join(smoothed_navigation_data %>% select(realtime = mtime, xsmoothed,ysmoothed, depth = DEPTH2),
-            by , # custom join function 
-            , suffix = c(".1s", ".orifreq") ) -> surface_data_1s   
+# join to nearest timestamp in metadata
+surface_data_1s  %>% 
+  left_join(smoothed_navigation_data %>% select(realtime = mtime, xsmoothed,ysmoothed,   depth_interpolated = DEPTH2),
+            by = join_by(realtime) ,
+            suffix = c(".1s", ".orifreq") ) -> surface_data_1s_nav   
 
 ### export the table
-surface_data_1s %>%
-  select(laser_frames, realtime = realtime.1s, width, height, xsmoothed, ysmoothed, depth) %>%
-  write.csv(paste0("./Output/laserCal_biigleannotation.csv" ) )
+surface_data_1s_nav %>%
+  write_csv(paste0("./Output/laserCal_biigleannotation.csv" ) )
+
+# =======================================================================================
+# plotting the data
+# =======================================================================================
 
 ### make plots of interp
 # plot width over time 
@@ -155,8 +153,8 @@ surface_data %>%
 
 
 # plot width over time 
-surface_data_1s %>% 
-  ggplot(aes(x = realtime.1s, y = width)) +
+surface_data_1s_nav %>% 
+  ggplot(aes(x = realtime , y = width)) +
   geom_line() +
   labs(title = "Interpolated width of images over time",
        x = "Time (1s)",
