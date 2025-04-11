@@ -1,0 +1,174 @@
+---
+title: "step 4: Biigle video laser calibration"
+author: "Your Name"
+date: "Today's Date"
+format:
+  html:
+    toc: true
+    number-sections: true
+editor: 
+  markdown: 
+    wrap: sentence
+---
+
+## Setup
+
+Before beginning, we will load necessary libraries.
+
+Also input the parameters (resolution) of the images and the laser scale in meters. 
+
+```{r}
+library(sf)
+library(rgl)
+library(magrittr)
+library(tidyverse)
+
+getwd() -> wd
+# delete the "code" part of the pathway so that the rest of the path are not relative to the code directory
+wd <- str_remove(wd, "/code") 
+
+# set the working directory to the directory above "code"
+setwd(wd)
+
+ 
+
+```
+
+# Load data
+
+open the table with time and xy positions, here maybe need to change/delete working direction???
+(linked to my local drive) setwd("D:/PHD/ROV/ROV raw video density estimates/navigation_smoothing")
+
+```{r}
+# put path to your processed navigation file with smoothed XYZ and image width
+paste0(wd,"/Output/laserCal_biigleannotation.csv" ) %>% read_csv() -> smoothed_navigation_laser_data
+
+```
+
+# 
+
+```{r}
+
+# if you know it, put the corresponding filename here
+ # - Check if needed !!!!
+smoothed_navigation_laser_data %>% mutate(filename = "transect_1" ) %>%
+  # put the filename in first place
+  relocate(filename,.before = names(smoothed_navigation_laser_data)[1])
+
+!!! use the video time to merge metdata and navigation data !!! at least checks the start_time is 0 seconds in videos
+ 
+# make a time in video column
+# extract the first line of nav as the starttime - need to import the metadata as nav
+video_starttime 
+
+# this should be where the start time is   
+smoothed_navigation_laser_data %>% filter( videotime == 0 ) %>% pull(datetime)
+  
+video_starttime <- smoothed_navigation_laser_data %>% slice(1) %>% pull(datetime)
+
+time_stamps <- smoothed_navigation_laser_data  %>%  
+  mutate(sec_in_video = seconds(datetime  -  video_starttime   )  %>% seconds_to_period()  ) %>% 
+  mutate(time_in_video =sprintf('%02d:%02d:%02d', sec_in_video$hour,sec_in_video$minute, sec_in_video$second) )
+
+# change format of time column in navigation table
+time_stamps %<>% 
+  mutate( sec_in_video =  sec_in_video %>% seconds() )
+
+# does this look legit? 
+time_stamps %>%  select( sec_in_video , time_in_video )
+
+
+
+```
+# distance between points
+
+### first convert the XY coordinates to utm
+Coordinates must be in meters so they are in the same units as depth 
+
+```{r}
+
+ 
+# latlong to to utm
+traj.sf <-st_as_sf(smoothed_navigation_laser_data ,coords =c("xsmoothed","ysmoothed"),crs="+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0")
+# reproject to UTM 33
+# find out the right UTM zone and convert to it
+traj.sf %<>% st_transform( "+proj=utm +zone=33 +datum=WGS84 +units=m +no_defs")
+# get coordinates 
+traj.sf$geometry %>% st_coordinates() %>% as_tibble() %>% bind_cols(smoothed_navigation_laser_data) -> joint_navigation_annotation_utm
+
+# USE interpolated depth HERE - renaming interpolated to just depth for simplicity
+joint_navigation_annotation_utm %>%
+  dplyr::select(X, Y,depth = depth_interpolated)  -> dpoint
+
+
+```
+
+
+### then calculate the distance
+
+using the dist function from the base R package. It calculate the euclidean distance between two points in 3D space (X, Y, and depth). 
+
+```{r}
+
+# at each point, use coordinates of the previous point 
+dpoint %>%
+  slice(-n()) %>%  bind_rows(dpoint %>% slice(1),.) %>% 
+  rename(X2 = X,Y2 = Y, depth2 = depth ) %>%  # USE interpolated depth HERE !!!!!!
+  bind_cols(dpoint,.) %>%
+  # calculate distance between each point and the point before (so it starts at 0)
+  rowwise() %>%
+  mutate(distance_3d =
+           # put coordinates into a matrix
+           matrix(c(X2,Y2,depth2,X,Y,depth), # USE interpolated depth HERE !!!!!!
+                  nrow= 2,
+                  ncol = 3, # coordinates matrix has  columns
+                  byrow = TRUE ) %>% 
+           # calculate Euclidean distance between two sets of points 
+           dist() %>%  as.numeric()) %>% 
+  ungroup() -> dpoints2
+
+
+#cumulated distance travelled 
+dpoints2  %>% 
+  mutate(index = 1:nrow(.)) %>% 
+  #group_by(index) %>% 
+  mutate(distance_travelled = cumsum(distance_3d)) %>% 
+  select(distance_travelled ) %>% 
+  bind_cols(dpoints2,. ) -> cumulated_3D_distance_travelled
+
+
+```
+
+# print results and export
+
+```{r}
+
+# print the whole transects length/distance travelled
+cumulated_3D_distance_travelled %>% tail(1) %>% pull(distance_travelled) %>% 
+  paste0("Distance travelled in 3D: ",.) %>% 
+  print()
+
+# add the distance column
+joint_navigation_annotation <- bind_cols(joint_navigation_annotation_utm,
+                                         cumulated_3D_distance_travelled %>% select(distance_3d, distance_travelled) )
+
+# export the smoothed and calibrated navigation into the 
+joint_navigation_annotation %>%
+  write_csv(paste0("./Output/dist_calibrated_smoothed_navigation.csv" ) )
+
+```
+
+# plot your points in 3d
+
+```{r}
+
+# plot your points in 3d
+
+open3d()
+x <- dpoint$X %>%  scale()
+y <- dpoint$Y %>%  scale()
+depth <-  dpoint$depth %>%  scale() # USE interpolated depth HERE !!!!!!
+plot3d(x, y, depth, col = rainbow(1000))
+
+```
+

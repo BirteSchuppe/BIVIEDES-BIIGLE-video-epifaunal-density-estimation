@@ -63,6 +63,9 @@ navigation_data %>%
   write_csv(paste0(wd,"/Output/bins_dist_calibrated_smoothed_navigation.csv" ) )
 
 
+
+
+
 ```
 
 ### calculate bins metadata
@@ -185,19 +188,56 @@ arranged_biigle_annotations %<>%
 arranged_biigle_annotations %>% select(endsec, startsec, frames)  
 
 
-# attach metadata at the time something disappear (last second - where nearest to the camera) ----------
 
+```
+
+###
+
+```{r}
+
+# attach metadata at the time something disappear (last second - where nearest to the camera) ----------
+video_starttime <- navigation_data$datetime[1]
+video_video_starttime <- navigation_data$videotime[1]
+
+
+if (video_video_starttime != 0) { 
+  
+  # make a time in video column
+# this should be where the start time is   
+smoothed_navigation_data %>% filter( videotime == 0 ) %>% pull(datetime)
+video_starttime <- smoothed_navigation_data %>% slice(1) %>% pull(datetime)
+
+
+!!!! check if video video_starttime is 0 !!!
+
+  
+  video_starttime <- navigation_data$datetime[1] - seconds(video_video_starttime)
+  
+  
+  }
+  
+
+time_stamps <- navigation_data  %>%  
+  select(datetime) %>% 
+  mutate(sec_in_video = seconds(datetime  -  video_starttime   )  %>% seconds_to_period()  ) %>% 
+  mutate(time_in_video =sprintf('%02d:%02d:%02d', sec_in_video$hour,sec_in_video$minute, sec_in_video$second) )
+# change format of time column in navigation table
+time_stamps %<>% 
+  mutate( sec_in_video =  sec_in_video %>% seconds() )
 # join to nearest timestamp in metadata  
 by <- join_by(  closest(endsec  <= sec_in_video )) # !! joining by closest time stamp - MAY NOT BE EXACT !!!!!!!!!!!
-time_stamps  %>%  
-  left_join(arranged_biigle_annotations, . ,by , suffix = c(".annotations", ".metadata"))   -> dataset
+time_stamps  %>%  left_join(arranged_biigle_annotations, . ,by , suffix = c(".annotations", ".metadata"))   -> arranged_biigle_annotations_timestamps
 
 
 # add the navigation 
 # attach the width of the seabed to the dataset
-dataset %>% left_join(navigation_data %>% select(X,Y,depth = depth_interpolated,width,   realtime , bin ), by = c("realtime" = "realtime")) -> dataset
+arranged_biigle_annotations_timestamps %>%
+  left_join(navigation_data %>% select(X,Y,depth = depth_interpolated,width,   datetime , bin ),
+            by = c("datetime" = "datetime")) -> dataset
 
 ```
+
+
 
 ## Species Occurrence by Bin
 

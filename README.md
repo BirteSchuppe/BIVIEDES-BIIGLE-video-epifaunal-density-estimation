@@ -2,6 +2,10 @@
 
 **notes**: make sure time columns in your raw data are all in the same time-zones or let R assume they are UTC/your local time zone
 
+make sure the navigation data is 1s frequency 
+
+make sure the video time starts at 0s
+
 # order of script needed 
 - DONE: load Metadata in
 - DONE: load observation in
@@ -17,7 +21,7 @@
 2) navigation: with time in real-world, time in video and XYZ coordinates, depth, pitch, roll, yaw, and camera parameters (focal length, sensor size, etc.) - this is the standard Biigle Video navigation csv file with 1-frame navigation data and lasers marked regularly
 
 |  datetime| video time | lat | long | depth | other metadata |
-| --- | --- | --- | --- | --- | --- |
+| :---: | :---: | :---: | :---: | :---: | :---: |
 | dmy_hms | hms | dec.deg | dec.deg | (-)meters | XXX |
 | dmy_hms | hms | dec.deg | dec.deg | (-)meters | XXX | 
 
@@ -35,11 +39,6 @@
 4) tidy up scripts - maybe put into QMDs - maybe condensate into several scripts Birte has started to tidy up 
 
 **tasks identified at 07/03/2025 meeting**
-- Interpolate DEPTH values !!! 
+
 - find out the right UTM zone and convert to it
-- check numnbers rounding and precision - DONE
-- Check how the numbers get rounded + make sure nothing is lost  - DONE
-- Make some code to display the smoothed coordinates of the original ones - DONE
-- Calculate total sum of each species abundance 
-- Make bins of 50 m transects and calculate density within these subsections - DONE
-- average depth and other factors values in these bins 
+- 
