@@ -6,7 +6,7 @@ make sure the navigation data is 1s frequency
 
 make sure the video time starts at 0s
 Birte: probably need to replace the starting video time in the navigation csv file? often I have to remove the first logged navigation row(s) of the csv, since lat and long are often not matching with the lat and long video overlay.This results that the column "sperre log reltime" starts at +2 seconds or more.....
-
+Often the column Sperre log reltime has some time lags from the sensor I assume, so need to make sure that this column having the same time intervalls along the whole file..... 
 # order of script needed 
 - DONE: load Metadata in
 - DONE: load observation in
