@@ -1,0 +1,343 @@
+---
+title: "Analyzing BIIGLE Video Data"
+author: "Your Name"
+date: "Today's Date"
+format:
+  html:
+    toc: true
+    number-sections: true
+---
+
+## Introduction
+
+This Quarto document outlines the workflow for analyzing video annotation data from BIIGLE. We will focus on calculating species density changes along a video transect, generating plots, and exporting processed data for further analysis.
+
+## Setup
+
+Before beginning, we will load necessary libraries.
+
+```{r}
+
+library(patchwork)
+library(readr)
+library(plotly)
+library(RColorBrewer)
+library(tidyverse)
+
+getwd() -> wd
+# delete the "code" part of the pathway so that the rest of the path are not relative to the code directory
+wd <- str_remove(wd, "/code") 
+
+
+# define bins parameters 
+
+# set a bin size in m 
+bin_size <- 50
+
+
+
+```
+
+## Load navigation data
+
+Next, we load the image calibration data to assist in calculating the seabed surface width.
+
+```{r}
+# open image calibration info to calculate the bin surface
+paste0(wd,"/Output/dist_calibrated_smoothed_navigation.csv" ) %>%  read_csv() -> navigation_data
+
+```
+
+## Data Binning
+
+To analyze how species density changes along the video transect, we split the dataset into subsets based on the distance travelled by the ROV. Here, we will create 50m distance traveled bins.
+
+```{r}
+# create bins of 50m distance travelled 
+breaks <- seq(0, max(navigation_data$distance_travelled) + bin_size, by = bin_size)
+binned_numbers <- cut(navigation_data$distance_travelled, breaks = breaks, include.lowest = TRUE)
+navigation_data <- mutate(navigation_data, bin = binned_numbers) 
+
+
+navigation_data %>%
+  write_csv(paste0(wd,"/Output/bins_dist_calibrated_smoothed_navigation.csv" ) )
+
+
+
+
+
+```
+
+### calculate bins metadata
+
+```{r}
+
+
+# show the average width in each bin 
+navigation_data %>%  group_by(bin) %>% 
+  summarise(n = n(), 
+            # caluculate the mean depth in each bin
+            mean_depth = mean(depth_interpolated, na.rm = TRUE),
+            # and the width
+            mean_width = mean(width, na.rm = TRUE),
+  ) %>% 
+  # surface of a bin is the average width * 50m
+  mutate(bin_surface = mean_width * bin_size) -> bins_metadata
+
+# add a line to the tabl showing the average values for the entire table
+bins_metadata %>% 
+  summarise(mean_depth = mean(mean_depth),
+            mean_width = mean(mean_width),
+            bin_surface = sum(bin_surface)) %>% 
+  mutate(bin = paste0( "All(",breaks %>% head(1),",",breaks %>% last() ,"]"), n = nrow(navigation_data) ) %>% 
+  bind_rows(bins_metadata) -> bins_metadata
+# expor the smoothed and calibrated navigation into the 
+
+
+```
+
+### visualise the bins metadata
+
+```{r}
+
+# make a custom colour vector
+nb.cols <- length(breaks)
+mycolors <- colorRampPalette(brewer.pal(12, "Set3"))(nb.cols)
+
+bins_metadata %>% 
+  # remove the first line (all bins)
+  filter(bin != "All(0,950]") %>%
+  # make the Bin column a factor
+  mutate(bin = factor(bin, levels = unique(bin))) %>%
+  ggplot(aes(x = bin, y = - mean_depth, fill = bin)) +
+  geom_bar(stat = "identity") +
+  # set color palette to "set3"
+  scale_fill_manual(values = mycolors) +
+   # display x axis labels vertically
+   theme_minimal() + 
+    # disable the legend
+  theme(legend.position = "none") +
+  theme (axis.text.x = element_text(angle = 90, hjust = 1)) +
+  labs(title = "Mean Depth by Bin", x = "Bin", y = "Mean Depth (m)") -> plot_bins_metadata
+
+# same plot for the  width
+bins_metadata %>% 
+  # remove the first line (all bins)
+  filter(bin != "All(0,950]") %>%
+  # make the Bin column a factor
+  mutate(bin = factor(bin, levels = unique(bin))) %>%
+  ggplot(aes(x = bin, y = mean_width, fill = bin)) +
+  geom_bar(stat = "identity") +
+  # set color palette to "set3"
+  scale_fill_manual(values = mycolors) +
+   # display x axis labels vertically
+   theme_minimal() + 
+    # disable the legend
+  theme(legend.position = "none") +
+  theme (axis.text.x = element_text(angle = 90, hjust = 1)) +
+  labs(title = "Mean Width by Bin", x = "Bin", y = "Mean Width (m)") -> plot_bins_metadata_width
+
+
+# both plots in a grid of 1 row
+
+
+plot_bins_metadata + plot_bins_metadata_width + 
+  plot_layout(ncol = 1) +
+  plot_annotation(title = "Mean Depth and Width by Bin") -> plot_bins_metadata_combined
+
+plot_bins_metadata_combined
+
+ 
+
+```
+
+## Merge navigation with observation
+
+### Annotation data Loading
+
+Load Data set We will start by loading the output from a previous script that recorded the distance traveled in BIIGLE annotations.
+
+```{r}
+# open the table of annotations
+arranged_annotations_file <-  paste0(wd,"/annotations/","arranged_generic_annotation.csv" )
+read_csv(arranged_annotations_file) -> arranged_biigle_annotations 
+```
+
+We attach the width of the seabed to the dataset using a left join.
+
+```{r}
+
+# first and last frame of each annotation 
+arranged_biigle_annotations %<>%
+  # start frame
+  mutate(startframe =    frames %>% str_sub( 2, -2)  %>% 
+           str_replace("null",replacement = "0") %>% 
+           str_split(pattern = ",") %>%
+           map_vec(~head(.x,1) %>% as.numeric),
+         # endframe
+         endframe =    frames %>% str_sub( 2, -2)  %>% 
+           str_replace("null",replacement = "0") %>% 
+           str_split(pattern = ",") %>%
+           map_vec(~tail(.x,1) %>% as.numeric) )
+
+# make a start and end second for each annotation
+arranged_biigle_annotations %<>%
+  mutate( startsec = startframe %>% seconds() %>% floor, 
+          endsec = endframe %>% seconds() %>% floor)
+
+arranged_biigle_annotations %>% select(endsec, startsec, frames)  
+
+
+
+```
+
+###
+
+```{r}
+
+# attach metadata at the time something disappear (last second - where nearest to the camera) ----------
+video_starttime <- navigation_data$datetime[1]
+video_video_starttime <- navigation_data$videotime[1]
+
+
+if (video_video_starttime != 0) { 
+  
+  # make a time in video column
+# this should be where the start time is   
+smoothed_navigation_data %>% filter( videotime == 0 ) %>% pull(datetime)
+video_starttime <- smoothed_navigation_data %>% slice(1) %>% pull(datetime)
+
+
+!!!! check if video video_starttime is 0 !!!
+
+  
+  video_starttime <- navigation_data$datetime[1] - seconds(video_video_starttime)
+  
+  
+  }
+  
+
+time_stamps <- navigation_data  %>%  
+  select(datetime) %>% 
+  mutate(sec_in_video = seconds(datetime  -  video_starttime   )  %>% seconds_to_period()  ) %>% 
+  mutate(time_in_video =sprintf('%02d:%02d:%02d', sec_in_video$hour,sec_in_video$minute, sec_in_video$second) )
+# change format of time column in navigation table
+time_stamps %<>% 
+  mutate( sec_in_video =  sec_in_video %>% seconds() )
+# join to nearest timestamp in metadata  
+by <- join_by(  closest(endsec  <= sec_in_video )) # !! joining by closest time stamp - MAY NOT BE EXACT !!!!!!!!!!!
+time_stamps  %>%  left_join(arranged_biigle_annotations, . ,by , suffix = c(".annotations", ".metadata"))   -> arranged_biigle_annotations_timestamps
+
+
+# add the navigation 
+# attach the width of the seabed to the dataset
+arranged_biigle_annotations_timestamps %>%
+  left_join(navigation_data %>% select(X,Y,depth = depth_interpolated,width,   datetime , bin ),
+            by = c("datetime" = "datetime")) -> dataset
+
+```
+
+
+
+## Species Occurrence by Bin
+
+Calculate the number of occurrences of each species within each bin.
+
+```{r}
+bins_list <- list()
+
+for (i in unique(dataset$bin)){
+  bin.i <- dataset %>% filter(bin == i)
+  bin.i.counts <- bin.i %>% count(label_name)
+  bin.i.counts$bin <- i 
+  bins_list[[i]] <- bin.i.counts
+}
+
+bins_df <- bins_list %>% bind_rows()
+```
+
+## Pivot Table
+
+Transform the table to have species names as columns and bins as rows.
+
+```{r}
+bins_df <- bins_df %>%
+  pivot_wider(names_from = label_name, values_from = n) %>% 
+  replace(is.na(.), 0)
+```
+
+### make a "All" bins first line
+
+```{r}
+# add a line to the table showing the average values for the entire table 
+bins_df %>% select(-bin) %>% 
+  summarise(across(everything(), sum))  %>% 
+  mutate(bin =bins_metadata$bin[1] ) %>% 
+  relocate(bin, .before = everything()) %>%
+  bind_rows(bins_df) -> bins_df
+
+```
+
+## Visualizing
+
+3D Depth Plot We create a 3D plot to visualize the X, Y, and depth dimensions, color-coded by bins.
+
+```{r}
+plot_ly(dataset, x = ~X, y = ~Y, z = ~-depth,
+        color = ~bin, 
+        colors = mycolors,
+        type = "scatter3d", mode = "markers", 
+        marker = list(size = 2))  %>%
+  layout(title = "XY Depth in 3D with Bin Color") 
+
+
+```
+
+### Exporting Data
+
+Species Abundance Export the table of species abundance per bin.
+
+```{r}
+bins_df %>% 
+  write_csv(paste0("../Output/",bin_size,"mbins_species_abundances.csv"))
+```
+
+###Species Density Calculate the density of each species in each bin based on surface area.
+
+```{r}
+bins_df_density <- bins_df %>%
+  select(-bin) %>%
+  map(~ .x / bins_metadata$bin_surface) %>%
+  bind_cols(bins_df %>% select(bin))  
+ 
+  
+# export tables of species densities per bin
+bins_df_density %>% 
+  write_csv(paste0(wd,"/Output/",bin_size,"mbins_species_densities.csv"))
+```
+
+## Principal Component Analysis (PCA)
+
+Perform PCA to visualize the different bins in the species space.
+
+```{r}
+
+# basinc PCA on the species density data
+bins_pca <- bins_df_density %>% 
+  # remove the all 
+  filter(bin != "All(0,950]") %>%
+  # ignore
+  select(-bin) %>% 
+  prcomp(center = TRUE, scale. = TRUE)
+
+# view results of bins coloured by depth
+plot_ly() %>%
+  add_trace(x = bins_pca$x[,1], y = bins_pca$x[,2], z = bins_pca$x[,3],
+            color = bins_metadata$mean_depth[-1] , type = "scatter3d", mode = "markers") %>%
+  layout(title = "PCA of Species Density in 50m Bins",
+         scene = list(xaxis = list(title = "PC1"),
+                      yaxis = list(title = "PC2"),
+                      zaxis = list(title = "PC3")))
+# put the name of the bins as labels 
+
+```

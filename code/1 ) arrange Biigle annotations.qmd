@@ -1,0 +1,75 @@
+---
+title: "step 1: arrange Biigle annotations"
+author: "Your Name"
+date: "Today's Date"
+format:
+  html:
+    toc: true
+    number-sections: true
+---
+
+## Setup
+
+Before beginning, we will load necessary libraries.
+
+```{r}
+
+library(tidyverse)
+
+getwd() -> wd
+# delete the "code" part of the pathway so that the rest of the path are not relative to the code directory
+wd <- str_remove(wd, "/code") 
+
+# set the working directory to the directory above "code"
+setwd(wd)
+
+# list the csv tables and print their names
+list.files(paste0( wd,"/annotations"), pattern = ".csv$" ) %>% 
+# exclude the "arranged" pattern 
+str_subset("arranged", negate = T)  %>%  paste0("\n avialable CSV tables: \n",.) %>% cat
+
+```
+
+### Load data
+
+```{r}
+
+generic_annotation_file <- "generic_annotation.csv"
+read_csv( paste0(wd,"./annotations/",generic_annotation_file )  ) -> All_annotations
+  
+
+
+
+```
+
+### sort 
+
+Sorting annotations chronically by time in video, represented by chronically order of "frames" column
+
+```{r}
+
+
+All_annotations %>%
+  # make frame to numerical
+  mutate(frame_new =    frames %>% str_sub( 2, -2)  %>% 
+           str_replace("null",replacement = "0") %>% 
+           str_split(pattern = ",") %>%
+           map_vec(~head(.x,1) %>% as.numeric)) -> All_annotations
+
+# sort per image frame 
+All_annotations %>%  arrange(frame_new) -> All_annotations
+ 
+
+```
+
+### export
+
+```{r}
+
+# export re-arranged annotations 
+write_csv(All_annotations, paste0(wd,"/annotations/arranged_",generic_annotation_file )  )
+
+
+
+```
+
