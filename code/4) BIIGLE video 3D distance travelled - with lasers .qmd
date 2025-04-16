@@ -146,8 +146,10 @@ dpoints2  %>%
 # print the whole transects length/distance travelled
 cumulated_3D_distance_travelled %>% tail(1) %>% pull(distance_travelled) %>% 
   paste0("Distance travelled in 3D: ",.) %>% 
-  print()
+  print() 
 
+# store total distance travel as own value for calculating total species density along whole distance in 5.2
+cumulated_3D_distance_travelled %>% tail(1) %>% pull(distance_travelled) -> total_distance_travelled
 # add the distance column
 joint_navigation_annotation <- bind_cols(joint_navigation_annotation_utm,
                                          cumulated_3D_distance_travelled %>% select(distance_3d, distance_travelled) )
