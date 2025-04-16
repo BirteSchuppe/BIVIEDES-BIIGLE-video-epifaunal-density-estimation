@@ -314,6 +314,28 @@ bins_df_density <- bins_df %>%
 # export tables of species densities per bin
 bins_df_density %>% 
   write_csv(paste0(wd,"/Output/",bin_size,"mbins_species_densities.csv"))
+
+### calculate total species density of total transect area
+### first calculate total surface from previous calculated average_image_width multiplied with total_distance_travelled value
+total_surface <- total_distance_travelled*average_image_width
+print(total_surface)
+
+### select row containing cumulated species occurences along whole transect
+total_df_density <- bins_df %>%
+  filter(row_number()==1) 
+
+### add column of total surface 
+total_df_density %>% mutate(total_surface) -> total_df_density
+
+### calculate total density of each label based on total surface area of whole transect
+total_df_density %>% select(-bin) %>%
+  map(~ .x / total_surface) %>%
+  bind_cols(total_df_density %>% select(bin)) -> total_df_density
+
+### export tables of species density
+total_df_density  %>% 
+  write_csv(paste0(wd,"/Output/","species_densities.csv")) 
+
 ```
 
 ## Principal Component Analysis (PCA)
