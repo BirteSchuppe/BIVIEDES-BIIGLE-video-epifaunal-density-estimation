@@ -317,7 +317,7 @@ bins_df_density %>%
 
 ### calculate total species density of total transect area
 ### first calculate total surface from previous calculated average_image_width multiplied with total_distance_travelled value
-average_image_width <- 4.54 ###### this just generic, may be replaced with actual number from 3 script
+
 total_surface <- total_distance_travelled*average_image_width
 print(total_surface)
 
