@@ -55,14 +55,12 @@ smoothed_navigation_laser_data %>% mutate(filename = "transect_1" ) %>%
   # put the filename in first place
   relocate(filename,.before = names(smoothed_navigation_laser_data)[1])
 
-!!! use the video time to merge metdata and navigation data !!! at least checks the start_time is 0 seconds in videos
+#####!!! use the video time interpolated to merge metdata and navigation data !!! at least checks the start_time is 0 seconds in videos
  
-# make a time in video column
-# extract the first line of nav as the starttime - need to import the metadata as nav
-video_starttime 
+
 
 # this should be where the start time is   
-smoothed_navigation_laser_data %>% filter( videotime == 0 ) %>% pull(datetime)
+smoothed_navigation_laser_data %>% filter( videotime_interpolated == 0 ) %>% pull(datetime)
   
 video_starttime <- smoothed_navigation_laser_data %>% slice(1) %>% pull(datetime)
 
