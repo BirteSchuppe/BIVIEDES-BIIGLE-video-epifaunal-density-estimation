@@ -42,7 +42,7 @@ read_csv( paste0(wd,"./annotations/",generic_annotation_file )  ) -> All_annotat
 
 ```
 
-### sort 
+### sort
 
 Sorting annotations chronically by time in video, represented by chronically order of "frames" column
 
@@ -72,4 +72,3 @@ write_csv(All_annotations, paste0(wd,"/annotations/arranged_",generic_annotation
 
 
 ```
-
