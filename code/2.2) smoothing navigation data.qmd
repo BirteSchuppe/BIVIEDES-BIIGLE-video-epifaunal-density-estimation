@@ -75,6 +75,9 @@ if(!class(maskxy$datetime)[1] %in% c("POSIXct", "POSIXt"))  {
 # check that the time column is in the right format
 maskxy %>% 
   select(datetime) %>% glimpse
+
+# make a time column of elapsed seconds based on column datetime, in case for if videotime (logged via ROV system) is not starting at 0
+maskxy$elapsed_seconds <- as.numeric(difftime(maskxy$datetime, maskxy$datetime[1],units = "secs"))
 ```
 
 # interpolate
@@ -85,7 +88,7 @@ The zoo::na.approx function is part of the zoo package in R, which is designed f
 
 # create the missing time stamps so that you have a reading at each second 
 maskxy %>%
-  select(datetime, videotime,lon,lat, depth ) %>% 
+  select(datetime, videotime,lon,lat, depth, elapsed_seconds ) %>% 
   add_row(. , datetime  = .$datetime[1] + 1  , .before = 2) %>% 
   as_tsibble(index = datetime) %>%
   fill_gaps() %>% # automatically creates the missing timestamps
@@ -96,7 +99,7 @@ maskxy %>%
   mutate(LON2 = zoo::na.approx(as.vector(lon)),
          LAT2 = zoo::na.approx(as.vector(lat)), 
          DEPTH2 = zoo::na.approx(as.vector(depth)),
-         VIDEOTIME2 = zoo::na.approx(as.vector(format(datetime, "%S")))           ) -> maskxy  #### need to fix the seconds as continous
+         VIDEOTIME2 = zoo::na.approx(as.vector(elapsed_seconds))           ) -> maskxy  
 # note this might also be enough if your track look good
 
 # check that there are no NA left in LON2 or LAT2 or DEPTH2
