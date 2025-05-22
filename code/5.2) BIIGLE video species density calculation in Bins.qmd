@@ -195,27 +195,6 @@ arranged_biigle_annotations %>% select(endsec, startsec, frames)
 
 ```{r}
 
-# attach metadata at the time something disappear (last second - where nearest to the camera) ----------
-video_starttime <- navigation_data$datetime[1]
-video_video_starttime <- navigation_data$videotime[1]
-
-
-if (video_video_starttime != 0) { 
-  
-  # make a time in video column
-# this should be where the start time is   
-smoothed_navigation_data %>% filter( videotime == 0 ) %>% pull(datetime)
-video_starttime <- smoothed_navigation_data %>% slice(1) %>% pull(datetime)
-
-
-!!!! check if video video_starttime is 0 !!!
-
-  
-  video_starttime <- navigation_data$datetime[1] - seconds(video_video_starttime)
-  
-  
-  }
-  
 
 time_stamps <- navigation_data  %>%  
   select(datetime) %>% 
