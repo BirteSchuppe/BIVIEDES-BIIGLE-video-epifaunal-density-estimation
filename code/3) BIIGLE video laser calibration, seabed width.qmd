@@ -61,14 +61,14 @@ read_csv( paste0(wd,"/annotations/arranged_",generic_annotation_file )  ) -> ann
 
  
 # extract the first line of nav as the starttime - need to import the metadata as nav
-video_starttime 
+
 
 # this should be where the start time is   
-smoothed_navigation_data %>% filter( videotime == 0 ) %>% pull(datetime)
+smoothed_navigation_data %>% filter( videotime_interpolated == 0 ) %>% pull(datetime)
   
 video_starttime <- smoothed_navigation_data %>% slice(1) %>% pull(datetime)
 
-get a better way to check the start_time !!! !!!! ! ! ! ! !
+#####get a better way to check the start_time !!! !!!! ! ! ! ! !
 
 
 # load Biigle annotations 
