@@ -68,9 +68,6 @@ smoothed_navigation_data %>% filter( videotime_interpolated == 0 ) %>% pull(date
   
 video_starttime <- smoothed_navigation_data %>% slice(1) %>% pull(datetime)
 
-#####get a better way to check the start_time !!! !!!! ! ! ! ! !
-
-
 # load Biigle annotations 
 # The laser point annotations must be unique to each laser points - 
 # tracked annotations (more thant one time stamps ) will not work 
