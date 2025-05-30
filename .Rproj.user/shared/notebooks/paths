@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 C:/Users/06169774/OneDrive - Nord universitet/BIIGLE-video-epifaunal-density-estimation/Output/dist_calibrated_smoothed_navigation.csv="6B1E0054"
 C:/Users/06169774/OneDrive - Nord universitet/BIIGLE-video-epifaunal-density-estimation/code/1 ) arrange Biigle annotations.qmd="F333ABA2"
 C:/Users/06169774/OneDrive - Nord universitet/BIIGLE-video-epifaunal-density-estimation/code/1.2) Re-arranging BIIGLE annotations by time.R="0F9A042F"
@@ -15,3 +16,10 @@ C:/Users/06169774/OneDrive - Nord universitet/R skripts/distance travelled_2D_3D
 C:/Users/06169774/OneDrive - Nord universitet/R skripts/distance travelled_3D_unsmoothed.R="8998539A"
 C:/Users/06169774/OneDrive - Nord universitet/R skripts/smoothing_ROV_tracks_Nils.R="341379C2"
 C:/Users/06169774/OneDrive - Nord universitet/R skripts/smoothing_ROV_tracks_horsvaagen_test.R="5FC39972"
+=======
+C:/repos/BIIGLE-video-epifaunal-density-estimation/code/1 ) arrange Biigle annotations.qmd="0B3703DA"
+C:/repos/BIIGLE-video-epifaunal-density-estimation/code/2) smoothing navigation data.qmd="C7859797"
+C:/repos/BIIGLE-video-epifaunal-density-estimation/code/3) BIIGLE video laser calibration, seabed width.qmd="6E9EFA46"
+C:/repos/BIIGLE-video-epifaunal-density-estimation/code/4) BIIGLE video 3D distance travelled - with lasers .qmd="8CFDE545"
+C:/repos/BIIGLE-video-epifaunal-density-estimation/code/5) BIIGLE video species density calculation in Bins.qmd="B778EA70"
+>>>>>>> 51eb547c108297c45221018ccc3b81d0063053fe
