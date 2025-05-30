@@ -46,7 +46,7 @@ open the table with time and xy positions, here maybe need to change/delete work
 
 ```{r}
 
-navigation_file <- "generic_navigation_generic.csv"
+navigation_file <- "nav_horsvaagen1_bin1.csv"
 read_csv(paste0(wd,"/nav/",navigation_file) ) -> navigation
 
 ```
@@ -153,7 +153,7 @@ y <- maskxy$LAT2
 # Fit a cubic smoothing spline to each dimension
 # !!! this is user input. You can decide on the right smoothing parameter after checking the plot below
 dfs = 50
-spars = 0.3
+spars = 0.8
 
 sx <- smooth.spline(t, x, df = dfs, spar = spars, cv = TRUE)
 sy <- smooth.spline(t, y, df = dfs, spar = spars, cv = TRUE)
