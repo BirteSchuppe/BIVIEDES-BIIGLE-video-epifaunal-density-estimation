@@ -50,6 +50,7 @@ open the table with time and xy positions, here maybe need to change/delete work
 ```{r}
 # put path to your navigation file  
 read_csv ( paste0(wd,"/nav/smoothed_",navigation_file) )   -> smoothed_navigation_data
+
 # import annotations files 
 read_csv( paste0(wd,"/annotations/arranged_",generic_annotation_file )  ) -> annotation_data
 
