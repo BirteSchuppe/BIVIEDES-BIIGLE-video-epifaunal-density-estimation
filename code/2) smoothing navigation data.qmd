@@ -46,7 +46,7 @@ open the table with time and xy positions, here maybe need to change/delete work
 
 ```{r}
 
-navigation_file <- "nav_horsvaagen1_bin1.csv"
+navigation_file <- "Generic_navigation_generic.csv"
 read_csv(paste0(wd,"/nav/",navigation_file) ) -> navigation
 
 ```
@@ -152,8 +152,8 @@ y <- maskxy$LAT2
 # z  # no smoothing of th ~DEPTH: interpolation should be enough 
 # Fit a cubic smoothing spline to each dimension
 # !!! this is user input. You can decide on the right smoothing parameter after checking the plot below
-dfs = 50
-spars = 0.8
+dfs = 70
+spars = 0.5
 
 sx <- smooth.spline(t, x, df = dfs, spar = spars, cv = TRUE)
 sy <- smooth.spline(t, y, df = dfs, spar = spars, cv = TRUE)
@@ -216,4 +216,8 @@ tibble( xsmoothed = sx[[2]] ,ysmoothed = sy[[2]] )  %>%
   rename(depth_interpolated = DEPTH2, videotime_interpolated = VIDEOTIME2 ) -> smoothed_navigation
 
 write_csv( smoothed_navigation, paste0(wd,"/nav/smoothed_",navigation_file))   
+
+#####ADDITION: only for comparison with non-smoothing or in case smoothing is not desired, apply following steps to extarct the raw coordinates
+####maskxy %>% rename(depth_interpolated = DEPTH2, videotime_interpolated = VIDEOTIME2 ) -> non_smoothed_navigation
+#######write_csv( non_smoothed_navigation, paste0(wd,"/nav/smoothed_",navigation_file))  
 ```
