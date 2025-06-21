@@ -61,23 +61,23 @@ depending on the formate of your time column and The mood of Excel, you might ne
 # time management
 navigation %>% 
 # make the time column - if you have a data and a time column
-  mutate(datetime = datetime) -> maskxy
+  mutate(datetime = datetime) -> positions
 # if you have a dmy_hms character string
 
 
 # check that datetime is a datetime object
 # if class of datetime is not "POSIXct" or "POSIXt" then convert it
-if(!class(maskxy$datetime)[1] %in% c("POSIXct", "POSIXt"))  {
+if(!class(positions$datetime)[1] %in% c("POSIXct", "POSIXt"))  {
   print("setting datetime to POSIXt")
-  maskxy %>%  mutate( datetime = dmy_hms(datetime)) -> maskxy
+  positions %>%  mutate( datetime = dmy_hms(datetime)) -> positions
 }
 
 # check that the time column is in the right format
-maskxy %>% 
+positions %>% 
   select(datetime) %>% glimpse
 
 # make a time column of elapsed seconds based on column datetime, in case for if videotime (logged via ROV system) is not starting at 0
-maskxy$elapsed_seconds <- as.numeric(difftime(maskxy$datetime, maskxy$datetime[1],units = "secs"))
+positions$elapsed_seconds <- as.numeric(difftime(positions$datetime, positions$datetime[1],units = "secs"))
 ```
 
 # interpolate
@@ -87,7 +87,7 @@ The zoo::na.approx function is part of the zoo package in R, which is designed f
 ```{r}
 
 # create the missing time stamps so that you have a reading at each second 
-maskxy %>%
+positions %>%
   select(datetime, videotime,lon,lat, depth, elapsed_seconds ) %>% 
   add_row(. , datetime  = .$datetime[1] + 1  , .before = 2) %>% 
   as_tsibble(index = datetime) %>%
@@ -99,11 +99,11 @@ maskxy %>%
   mutate(LON2 = zoo::na.approx(as.vector(lon)),
          LAT2 = zoo::na.approx(as.vector(lat)), 
          DEPTH2 = zoo::na.approx(as.vector(depth)),
-         VIDEOTIME2 = zoo::na.approx(as.vector(elapsed_seconds))           ) -> maskxy  
+         VIDEOTIME2 = zoo::na.approx(as.vector(elapsed_seconds))           ) -> positions  
 # note this might also be enough if your track look good
 
 # check that there are no NA left in LON2 or LAT2 or DEPTH2
-if(any(is.na(maskxy$LON2)) | any(is.na(maskxy$LAT2)) | any(is.na(maskxy$DEPTH2))) {
+if(any(is.na(positions$LON2)) | any(is.na(positions$LAT2)) | any(is.na(positions$DEPTH2))) {
   print("There are NA values in LON2, LAT2 or DEPTH2")
 } else {
   print("No NA values in LON2, LAT2 or DEPTH2. That's great")
@@ -146,9 +146,9 @@ important smoothing parameters to set here:
 
 
 # Smooth the track  
-t <- 1:nrow(maskxy)
-x <- maskxy$LON2
-y <- maskxy$LAT2
+t <- 1:nrow(positions)
+x <- positions$LON2
+y <- positions$LAT2
 # z  # no smoothing of th ~DEPTH: interpolation should be enough 
 # Fit a cubic smoothing spline to each dimension
 # !!! this is user input. You can decide on the right smoothing parameter after checking the plot below
@@ -196,8 +196,8 @@ plot_ly() %>%
 # make the same plot in 3d with depth2 as the 3rd dimension
 plot_ly() %>%
   # make smaller point size
-  add_trace(x = x, y = y, z = - maskxy$DEPTH2, mode = "markers", type = "scatter3d", name = "un-smoothed", marker = list(size = 4)) %>%
-  add_trace(x = sx[[2]], y = sy[[2]], z = - maskxy$DEPTH2, mode = "lines", type = "scatter3d", name = "smoothed") %>%
+  add_trace(x = x, y = y, z = - positions$DEPTH2, mode = "markers", type = "scatter3d", name = "un-smoothed", marker = list(size = 4)) %>%
+  add_trace(x = sx[[2]], y = sy[[2]], z = - positions$DEPTH2, mode = "lines", type = "scatter3d", name = "smoothed") %>%
   layout(title = "Difference of un-smoothed and smoothed ROV transect",
          scene = list(xaxis = list(title = "Longitude"),
                       yaxis = list(title = "Latitude"),
@@ -212,12 +212,12 @@ attach the smoothed XY and the interpolated depth to the navigation
 ```{r}
 # add the new coordinates to the table
 tibble( xsmoothed = sx[[2]] ,ysmoothed = sy[[2]] )  %>%
-  bind_cols(maskxy,.) %>% 
+  bind_cols(positions,.) %>% 
   rename(depth_interpolated = DEPTH2, videotime_interpolated = VIDEOTIME2 ) -> smoothed_navigation
 
 write_csv( smoothed_navigation, paste0(wd,"/nav/smoothed_",navigation_file))   
 
 #####ADDITION: only for comparison with non-smoothing or in case smoothing is not desired, apply following steps to extarct the raw coordinates
-####maskxy %>% rename(depth_interpolated = DEPTH2, videotime_interpolated = VIDEOTIME2 ) -> non_smoothed_navigation
+####positions %>% rename(depth_interpolated = DEPTH2, videotime_interpolated = VIDEOTIME2 ) -> non_smoothed_navigation
 #######write_csv( non_smoothed_navigation, paste0(wd,"/nav/smoothed_",navigation_file))  
 ```
