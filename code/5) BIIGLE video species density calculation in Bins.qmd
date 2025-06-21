@@ -278,7 +278,7 @@ Species Abundance Export the table of species abundance per bin.
 
 ```{r}
 bins_df %>% 
-  write_csv(paste0("../Output/",bin_size,"mbins_species_abundances.csv"))
+  write_csv(paste0("../Output/",bin_size,"bins_species_abundances.csv"))
 ```
 
 ###Species Density Calculate the density of each species in each bin based on surface area.
@@ -292,7 +292,7 @@ bins_df_density <- bins_df %>%
   
 # export tables of species densities per bin
 bins_df_density %>% 
-  write_csv(paste0(wd,"/Output/",bin_size,"mbins_species_densities.csv"))
+  write_csv(paste0(wd,"/Output/",bin_size,"bins_species_densities.csv"))
 
 ### calculate total species density of total transect area
 ### first calculate total surface from previous calculated average_image_width multiplied with total_distance_travelled value
