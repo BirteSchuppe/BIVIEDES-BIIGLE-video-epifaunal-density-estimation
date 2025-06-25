@@ -295,7 +295,7 @@ bins_df_density %>%
   write_csv(paste0(wd,"/Output/",bin_size,"bins_species_densities_flat3_3d_nonsmoothing.csv"))
 
 ### calculate total species density of total transect area
-### first calculate total surface from previous calculated average_image_width multiplied with total_distance_travelled value
+### first calculate total surface from previous calculated average_image_width multiplied with total_distance_travelled value. IMPORTANT: to get the average image width variable, this needs to be first computed in script 3!
 
 total_surface <- total_distance_travelled*average_image_width
 print(total_surface)
@@ -327,7 +327,8 @@ Perform PCA to visualize the different bins in the species space.
 # basinc PCA on the species density data
 bins_pca <- bins_df_density %>% 
   # remove the all 
-  filter(bin != "All(0,950]") %>%
+  # filter out hte bin name that has the pattern "All" in it
+  filter(!str_detect(bin, "All")) %>%
   # ignore
   select(-bin) %>% 
   prcomp(center = TRUE, scale. = TRUE)
@@ -335,7 +336,8 @@ bins_pca <- bins_df_density %>%
 # view results of bins coloured by depth
 plot_ly() %>%
   add_trace(x = bins_pca$x[,1], y = bins_pca$x[,2], z = bins_pca$x[,3],
-            color = bins_metadata$mean_depth[-1] , type = "scatter3d", mode = "markers") %>%
+            color = bins_metadata %>% filter(!str_detect(bin, "All")) %>% pull(mean_depth)  ,
+            type = "scatter3d", mode = "markers") %>% # 
   layout(title = "PCA of Species Density in 50m Bins",
          scene = list(xaxis = list(title = "PC1"),
                       yaxis = list(title = "PC2"),
