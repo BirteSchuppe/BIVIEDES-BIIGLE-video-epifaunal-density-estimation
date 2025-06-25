@@ -87,7 +87,7 @@ Coordinates must be in meters so they are in the same units as depth
 ### ADDITIONAL: for comparison: smoothed =c("xsmoothed","ysmoothed"),in case when smoothing is not desired and raw coordinates should be used instead c("LON2","LAT2") (raw coordinates from navigation file)
  
 # latlong to to utm
-traj.sf <-st_as_sf(smoothed_navigation_laser_data ,coords =c("xsmoothed","ysmoothed"),crs="+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0")
+traj.sf <-st_as_sf(smoothed_navigation_laser_data ,coords =c("LON2","LAT2"),crs="+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0")
 # reproject to UTM 33
 # find out the right UTM zone and convert to it
 traj.sf %<>% st_transform( "+proj=utm +zone=33 +datum=WGS84 +units=m +no_defs")
@@ -113,7 +113,7 @@ using the dist function from the base R package. It calculate the euclidean dist
            ####matrix(c(X2,Y2,X,Y), ncol = 2, exchange all 3Ds with 2Ds
 dpoint %>%
   slice(-n()) %>%  bind_rows(dpoint %>% slice(1),.) %>% 
-  rename(X2 = X,Y2 = Y, depth2 = depth ) %>%  # USE interpolated depth HERE !!!!!!
+  rename(X2 = X,Y2 = Y, depth2 = depth) %>%  # USE interpolated depth HERE !!!!!!
   bind_cols(dpoint,.) %>%
   # calculate distance between each point and the point before (so it starts at 0)
   rowwise() %>%
@@ -156,7 +156,7 @@ joint_navigation_annotation <- bind_cols(joint_navigation_annotation_utm,
 
 # export the smoothed and calibrated navigation into the 
 joint_navigation_annotation %>%
-  write_csv(paste0("./Output/dist_calibrated_smoothed_3d_navigation.csv" ) )
+  write_csv(paste0("./Output/dist_calibrated_unsmoothed_3d_navigation_flat3.csv" ) )
 
 ```
 

@@ -46,7 +46,7 @@ open the table with time and xy positions, here maybe need to change/delete work
 
 ```{r}
 
-navigation_file <- "Generic_navigation_generic.csv"
+navigation_file <- "flat3.csv"
 read_csv(paste0(wd,"/nav/",navigation_file) ) -> navigation
 
 ```
@@ -219,5 +219,5 @@ write_csv( smoothed_navigation, paste0(wd,"/nav/smoothed_",navigation_file))
 
 #####ADDITION: only for comparison with non-smoothing or in case smoothing is not desired, apply following steps to extarct the raw coordinates
 ####positions %>% rename(depth_interpolated = DEPTH2, videotime_interpolated = VIDEOTIME2 ) -> non_smoothed_navigation
-#######write_csv( non_smoothed_navigation, paste0(wd,"/nav/smoothed_",navigation_file))  
+####write_csv( non_smoothed_navigation, paste0(wd,"/nav/smoothed_",navigation_file))  
 ```
