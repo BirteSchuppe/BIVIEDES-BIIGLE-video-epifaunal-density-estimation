@@ -44,7 +44,7 @@ Next, we load the image calibration data to assist in calculating the seabed sur
 
 ```{r}
 # open image calibration info to calculate the bin surface
-paste0(wd,"/Output/dist_calibrated_smoothed_3d_navigation.csv" ) %>%  read_csv() -> navigation_data
+paste0(wd,"/Output/dist_calibrated_unsmoothed_3d_navigation_flat3.csv" ) %>%  read_csv() -> navigation_data
 
 ```
 
@@ -60,7 +60,7 @@ navigation_data <- mutate(navigation_data, bin = binned_numbers)
 
 
 navigation_data %>%
-  write_csv(paste0(wd,"/Output/bins_dist_calibrated_smoothed_3D_navigation.csv" ) )
+  write_csv(paste0(wd,"/Output/bins_dist_calibrated_unsmoothed_3D_navigation_flat3.csv" ) )
 
 
 
@@ -159,7 +159,7 @@ Load Data set We will start by loading the output from a previous script that re
 
 ```{r}
 # open the table of annotations
-arranged_annotations_file <-  paste0(wd,"/annotations/","arranged_generic_annotation.csv" )
+arranged_annotations_file <-  paste0(wd,"/annotations/","arranged_annotations_flat3.csv" )
 read_csv(arranged_annotations_file) -> arranged_biigle_annotations 
 ```
 
@@ -278,7 +278,7 @@ Species Abundance Export the table of species abundance per bin.
 
 ```{r}
 bins_df %>% 
-  write_csv(paste0("../Output/",bin_size,"bins_species_abundances.csv"))
+  write_csv(paste0("../Output/",bin_size,"bins_species_abundances_flat3_3d_unsmoothed.csv"))
 ```
 
 ###Species Density Calculate the density of each species in each bin based on surface area.
@@ -292,7 +292,7 @@ bins_df_density <- bins_df %>%
   
 # export tables of species densities per bin
 bins_df_density %>% 
-  write_csv(paste0(wd,"/Output/",bin_size,"bins_species_densities.csv"))
+  write_csv(paste0(wd,"/Output/",bin_size,"bins_species_densities_flat3_3d_nonsmoothing.csv"))
 
 ### calculate total species density of total transect area
 ### first calculate total surface from previous calculated average_image_width multiplied with total_distance_travelled value
@@ -314,7 +314,7 @@ total_df_density %>% select(-bin) %>%
 
 ### export tables of species density
 total_df_density  %>% 
-  write_csv(paste0(wd,"/Output/","species_densities.csv")) 
+  write_csv(paste0(wd,"/Output/","species_densities_flat3_3d_nonsmoothing.csv")) 
 
 ```
 
