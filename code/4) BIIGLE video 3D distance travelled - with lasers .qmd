@@ -1,5 +1,5 @@
 ---
-title: "step 4: Biigle video laser calibration"
+title: "step 4: Biigle video 3D distance travelled"
 author: "Your Name"
 date: "Today's Date"
 format:
@@ -84,17 +84,18 @@ time_stamps %>%  select( sec_in_video , time_in_video )
 Coordinates must be in meters so they are in the same units as depth 
 
 ```{r}
-### ADDITIONAL: for comparison: smoothed =c("xsmoothed","ysmoothed"),in case when smoothing is not desired and raw coordinates should be used instead c("LON2","LAT2") (raw coordinates from navigation file)
+### WARNING In case when smoothing is not desired/ommitted in step 2, thus raw coordinates should be used to calculate the distance travelled, one need to replace in codeline 90  (coords =c("xsmoothed","ysmoothed")) with instead c("LON2","LAT2") (interpolated raw coordinates from navigation file) for transformation into UTM.
+
  
 # latlong to to utm
-traj.sf <-st_as_sf(smoothed_navigation_laser_data ,coords =c("LON2","LAT2"),crs="+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0")
+traj.sf <-st_as_sf(smoothed_navigation_laser_data ,coords =c("xsmoothed","ysmoothed"),crs="+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0")
 # reproject to UTM 33
 # find out the right UTM zone and convert to it
 traj.sf %<>% st_transform( "+proj=utm +zone=33 +datum=WGS84 +units=m +no_defs")
 # get coordinates 
 traj.sf$geometry %>% st_coordinates() %>% as_tibble() %>% bind_cols(smoothed_navigation_laser_data) -> joint_navigation_annotation_utm
 
-# USE interpolated depth HERE - renaming interpolated to just depth for simplicity ##### for 2D distance travelled: remove "depth = depth_interpolated" below
+# USE interpolated depth HERE - renaming interpolated to just depth for simplicity
 joint_navigation_annotation_utm %>%
   dplyr::select(X, Y, depth = depth_interpolated)  -> dpoint
 
@@ -109,8 +110,8 @@ using the dist function from the base R package. It calculate the euclidean dist
 ```{r}
 
 # at each point, use coordinates of the previous point ### 
-### ADDITIONAL: for 2D distance travelled: remove "depth2 = depth" and, distance_3d --> distance_2d: distance_2d = # put coordinates into a matrix
-           ####matrix(c(X2,Y2,X,Y), ncol = 2, exchange all 3Ds with 2Ds
+### ADDITIONAL: for 2D distance travelled: remove "depth2 = depth" and rename distance_3d to distance_2d. The matrix of distance_2d should be adjusted to this:  distance_2d = # put coordinates into a matrix
+           ####matrix(c(X2,Y2,X,Y), ncol = 2, exchange all 3ds with 2ds in codeline 136 and 138
 dpoint %>%
   slice(-n()) %>%  bind_rows(dpoint %>% slice(1),.) %>% 
   rename(X2 = X,Y2 = Y, depth2 = depth) %>%  # USE interpolated depth HERE !!!!!!
@@ -156,7 +157,7 @@ joint_navigation_annotation <- bind_cols(joint_navigation_annotation_utm,
 
 # export the smoothed and calibrated navigation into the 
 joint_navigation_annotation %>%
-  write_csv(paste0("./Output/dist_calibrated_unsmoothed_3d_navigation_flat3.csv" ) )
+  write_csv(paste0("./Output/dist_calibrated_smoothed_3d_navigation.csv" ) )
 
 ```
 

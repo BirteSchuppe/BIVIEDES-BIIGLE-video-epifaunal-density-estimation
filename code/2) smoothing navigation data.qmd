@@ -25,6 +25,7 @@ library(plotly) # for interactive plots
 library(tidyverse)
 library(magrittr)
 
+
 getwd() -> wd
 # delete the "code" part of the pathway so that the rest of the path are not relative to the code directory
 wd <- str_remove(wd, "/code") 
@@ -46,7 +47,7 @@ open the table with time and xy positions, here maybe need to change/delete work
 
 ```{r}
 
-navigation_file <- "flat3.csv"
+navigation_file <- "Generic_navigation_generic.csv"
 read_csv(paste0(wd,"/nav/",navigation_file) ) -> navigation
 
 ```
@@ -117,7 +118,7 @@ if(any(is.na(positions$LON2)) | any(is.na(positions$LAT2)) | any(is.na(positions
 
 *stats::smooth.spline* function specifically fits a cubic smoothing spline, which finds a trade-off between fitting the data closely and maintaining smoothness.
 
-Key Parameters
+Key Parameters (for complete list, see Rs help page of smooth.spline)
 
 -   t: A numeric vector specifying the predictor variable.
     Here, we use t as a sequence from 1 to the number of time stamps in the data.
@@ -133,31 +134,38 @@ Key Parameters
 -   w: Optional weights for the observations.
 
 -   df: Degrees of freedom for the spline.
-    This can be used instead of spar to control the smoothness.
+    This can be used instead or in addition of spar to control the smoothness.
 
--   cv: If TRUE, the smoothing parameter is chosen by cross-validation.
+-   cv: If TRUE, the smoothing parameter is chosen objectively by ordinary leave-one- out cross-validation, if FALSE by generalized’ cross-validation (GCV) 
 
 -   all.knots: If TRUE, all data points are used as knots.
     Otherwise, a subset of knots is chosen.
+
+In each the resulting output vectors of smoothed latitude and longitude (here sx and sy) a cross validation score (either generalized or true, depending on the cv settings) are computed, supporting assessment of the model.
 
 important smoothing parameters to set here:
 
 ```{r}
 
-
 # Smooth the track  
 t <- 1:nrow(positions)
 x <- positions$LON2
 y <- positions$LAT2
-# z  # no smoothing of th ~DEPTH: interpolation should be enough 
+# z  # no smoothing of th ~DEPTH: interpolation of depth only
 # Fit a cubic smoothing spline to each dimension
-# !!! this is user input. You can decide on the right smoothing parameter after checking the plot below
+
+
+# !!! Method 1) this is user input thus subjective. You can decide on the right smoothing parameter after checking the plot below
 dfs = 70
 spars = 0.5
 
 sx <- smooth.spline(t, x, df = dfs, spar = spars, cv = TRUE)
 sy <- smooth.spline(t, y, df = dfs, spar = spars, cv = TRUE)
- 
+
+# !!! Method 2) let the model compute the smoothing parameter objectively by ordinary leave-one-out (cv = TRUE) or generalized’ cross-validation (GCV) (cv = FALSE), if the codelines below are activated (and the code above deactivated):
+
+#### sx <- smooth.spline(t, x, cv = FALSE)
+#### sy <- smooth.spline(t, y, cv = FALSE)
 
 ```
 
@@ -172,6 +180,8 @@ plot(x,y, cex = 0.25, col = "black", main = paste0("Difference of un-smoothed an
 lines(sx[[2]], sy[[2]], col = 2, lwd = 2)
 legend("topleft", legend=c("smoothed", "un-smoothed"),
        col=c("red", "black"), lty=1:2, cex=0.8)
+
+
 
 ```
 
@@ -217,7 +227,7 @@ tibble( xsmoothed = sx[[2]] ,ysmoothed = sy[[2]] )  %>%
 
 write_csv( smoothed_navigation, paste0(wd,"/nav/smoothed_",navigation_file))   
 
-#####ADDITION: only for comparison with non-smoothing or in case smoothing is not desired, apply following steps to extarct the raw coordinates
-####positions %>% rename(depth_interpolated = DEPTH2, videotime_interpolated = VIDEOTIME2 ) -> non_smoothed_navigation
-####write_csv( non_smoothed_navigation, paste0(wd,"/nav/smoothed_",navigation_file))  
+#####ADDITION: In case smoothing is not desired or should be ommited, activate following steps to retrieve the raw coordinates
+###positions %>% rename(depth_interpolated = DEPTH2, videotime_interpolated = VIDEOTIME2 ) -> non_smoothed_navigation
+###write_csv( non_smoothed_navigation, paste0(wd,"/nav/smoothed_",navigation_file))  
 ```

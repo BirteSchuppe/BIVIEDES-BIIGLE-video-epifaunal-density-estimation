@@ -34,7 +34,7 @@ str_subset("arranged", negate = T)  %>%  paste0("\n avialable CSV tables: \n",.)
 
 ```{r}
 
-generic_annotation_file <- "annotations_flat3.csv"
+generic_annotation_file <- "generic_annotation.csv"
 read_csv( paste0(wd,"./annotations/",generic_annotation_file )  ) -> All_annotations
   
 

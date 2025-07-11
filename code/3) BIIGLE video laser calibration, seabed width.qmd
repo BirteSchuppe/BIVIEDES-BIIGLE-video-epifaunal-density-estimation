@@ -45,7 +45,7 @@ ROV_imageproperties <- tibble( width = 1920,
 # Load data
 
 open the table with time and xy positions, here maybe need to change/delete working direction???
-(linked to my local drive) setwd("D:/PHD/ROV/ROV raw video density estimates/navigation_smoothing")
+
 
 ```{r}
 # put path to your navigation file  
